@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025 Business Entity Tax Organizer - Tax Prep Tech</title>
+<style>
+:root {
+  --accent: #2C5F8A;
+  --accent-light: #E8F0F7;
+  --body: #1A1A1A;
+  --muted: #555555;
+  --border: #CCCCCC;
+  --radius: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: var(--body); background: #f5f7fa; line-height: 1.5; }
+.form-container { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.firm-header { background: var(--accent); color: #fff; padding: 20px 28px; border-radius: var(--radius) var(--radius) 0 0; }
+.firm-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+.firm-header .firm-dba { font-size: 15px; font-weight: 400; opacity: 0.9; }
+.firm-header .firm-contact { font-size: 12px; margin-top: 8px; opacity: 0.8; }
+.form-title { background: #fff; border: 1px solid var(--border); border-top: none; padding: 18px 28px; text-align: center; }
+.form-title h2 { font-size: 20px; color: var(--accent); font-weight: 700; }
+.form-title .tax-year { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* Progress */
+.progress-bar { background: #fff; border: 1px solid var(--border); border-top: none; padding: 12px 28px; }
+.progress-track { background: #e9ecef; border-radius: 10px; height: 8px; overflow: hidden; }
+.progress-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 10px; }
+.progress-text { font-size: 12px; color: var(--muted); margin-top: 4px; text-align: right; }
+
+/* Sections */
+.form-section { background: #fff; border: 1px solid var(--border); border-top: none; }
+.form-section.conditional { border-left: 3px solid var(--accent); }
+.section-header { background: var(--accent-light); padding: 12px 28px; border-bottom: 1px solid var(--border); cursor: default; }
+.section-header h2 { font-size: 15px; font-weight: 700; color: var(--accent); }
+.section-body { padding: 20px 28px; }
+
+/* Fields */
+.field-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.field { flex: 1 1 100%; }
+.field-half { flex: 1 1 calc(50% - 6px); min-width: 200px; }
+.field-third { flex: 1 1 calc(33.33% - 8px); min-width: 160px; }
+.field-quarter { flex: 1 1 calc(25% - 9px); min-width: 130px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+.field input, .field select, .field textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; color: var(--body); background: #fff; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(44,95,138,0.15); }
+.field input[type="date"] { padding: 6px 10px; }
+
+/* Currency fields */
+.currency-wrap { position: relative; }
+.dollar-sign { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+.currency-input { padding-left: 22px !important; }
+
+/* Radio/checkbox groups */
+.radio-group { display: flex; gap: 16px; flex-wrap: wrap; padding: 4px 0; }
+.radio-group label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.checkbox-row label { font-size: 14px; cursor: pointer; }
+
+/* Yes/No screening questions */
+.yn-group-title { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.yn-group-title:first-child { margin-top: 0; }
+.yn-row { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.yn-buttons { display: flex; gap: 4px; flex-shrink: 0; padding-top: 1px; }
+.yn-btn { cursor: pointer; }
+.yn-btn input { display: none; }
+.yn-label { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); color: var(--muted); transition: all 0.15s; }
+.yn-btn input:checked + .yes-label { background: #28a745; color: #fff; border-color: #28a745; }
+.yn-btn input:checked + .no-label { background: #dc3545; color: #fff; border-color: #dc3545; }
+.yn-text { font-size: 14px; line-height: 1.4; padding-top: 2px; flex: 1; }
+.yn-detail { margin: 8px 0 8px 80px; padding: 12px; background: var(--accent-light); border-radius: 4px; display: none; }
+.yn-detail.visible { display: block; }
+
+/* Dynamic tables */
+.dynamic-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.dynamic-table th { background: var(--accent); color: #fff; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.dynamic-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+.dynamic-table input, .dynamic-table select { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 3px; font-size: 13px; }
+.btn-add { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.btn-add:hover { background: var(--accent); color: #fff; }
+.btn-remove { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 2px 6px; }
+
+/* Expense grid (two-column) — fixed widths prevent overlap */
+.expense-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+.expense-item { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
+.expense-item label { font-size: 12px; flex: 1 1 0%; min-width: 0; line-height: 1.3; overflow-wrap: break-word; }
+.expense-item .currency-wrap { width: 100px; min-width: 100px; max-width: 100px; flex: 0 0 100px; position: relative; }
+.expense-item .currency-input { width: 100%; font-size: 12px; padding: 5px 5px 5px 18px !important; box-sizing: border-box; }
+.expense-item .dollar-sign { font-size: 12px; left: 6px; }
+
+/* Collapsible help */
+.collapsible { margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 4px; }
+.collapsible-header { padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent); background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
+.collapsible-header:hover { background: var(--accent-light); }
+.collapse-icon { font-size: 10px; transition: transform 0.2s; }
+.collapsible.collapsed .collapsible-content { display: none; }
+.collapsible.collapsed .collapse-icon { transform: rotate(-90deg); }
+.collapsible-content { padding: 12px 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* Subsection divider */
+.subsection { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e8e8e8; }
+.subsection-title { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+
+/* Notes */
+.form-note { font-size: 12px; color: var(--muted); font-style: italic; margin: 6px 0; line-height: 1.4; }
+.form-note.important { color: #856404; background: #fff3cd; padding: 8px 12px; border-radius: 4px; font-style: normal; }
+
+/* Signature */
+.sig-block { margin: 16px 0; }
+.sig-line { border-bottom: 1px solid var(--body); margin-bottom: 4px; padding: 8px 0; }
+.sig-label { font-size: 12px; color: var(--muted); }
+.sig-input { border: none; border-bottom: 2px solid var(--accent); background: transparent; font-size: 16px; font-family: 'Georgia', serif; padding: 8px 4px; width: 100%; font-style: italic; }
+.sig-input:focus { outline: none; border-bottom-color: #1a4a6e; }
+.sig-meta { font-size: 11px; color: var(--muted); margin-top: 12px; }
+
+/* Buttons */
+.form-actions { text-align: center; padding: 24px 28px; background: #fff; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
+.btn-submit { padding: 14px 48px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; }
+.btn-submit:hover { background: #1a4a6e; }
+.btn-submit:disabled { background: #999; cursor: not-allowed; }
+
+/* Confirmation */
+.confirmation { display: none; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; text-align: center; margin-top: 20px; }
+.confirmation h2 { color: #28a745; font-size: 24px; margin-bottom: 12px; }
+.confirmation .conf-detail { text-align: left; max-width: 600px; margin: 20px auto; background: var(--accent-light); padding: 20px; border-radius: var(--radius); font-size: 14px; line-height: 1.8; }
+
+/* Validation */
+.field.error input, .field.error select { border-color: #dc3545; background: #fff5f5; }
+.error-msg { font-size: 11px; color: #dc3545; margin-top: 2px; }
+
+/* Timeout warning */
+.timeout-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
+.timeout-modal { background: #fff; padding: 32px; border-radius: 8px; max-width: 420px; text-align: center; }
+.timeout-modal h3 { color: #dc3545; margin-bottom: 12px; }
+.timeout-modal button { margin: 8px; padding: 10px 24px; border-radius: 4px; font-size: 14px; cursor: pointer; }
+.btn-continue { background: var(--accent); color: #fff; border: none; }
+.btn-clear { background: #fff; color: #dc3545; border: 1px solid #dc3545; }
+
+/* Footer */
+.form-footer { text-align: center; padding: 16px; font-size: 11px; color: var(--muted); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .form-container { padding: 8px; }
+  .section-body { padding: 14px 16px; }
+  .field-half, .field-third, .field-quarter { flex: 1 1 100%; }
+  .expense-grid { grid-template-columns: 1fr; }
+  .yn-row { flex-direction: column; gap: 6px; }
+  .yn-detail { margin-left: 0; }
+}
+@media print {
+  body { background: #fff; }
+  .btn-add, .btn-remove, .btn-submit, .form-actions, .progress-bar { display: none; }
+  .form-section { break-inside: avoid; border: none; }
+  .section-header { background: none; padding: 8px 0; }
+  .collapsible-content { display: block !important; }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="form-container">
+
+<!-- Firm Header -->
+<div class="firm-header">
+  <h1>Hellman &amp; Associates, LLC</h1>
+  <div class="firm-dba">TAX PREP TECH</div>
+</div>
+
+<!-- Form Title -->
+<div class="form-title">
+  <h2>2025 Business Entity Tax Organizer</h2>
+  <div class="tax-year">Tax Year 2025 &mdash; Please complete all applicable sections</div>
+</div>
+
+<!-- Progress Bar -->
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-text" id="progress-text">0% complete</div>
+</div>
+
+<form id="organizer-form" onsubmit="event.preventDefault(); generatePDF();" autocomplete="off">
+<section id="sec-entity" class="form-section"><div class="section-header"><h2>Business Entity Type</h2></div><div class="section-body">
+<div class="field-row">
+  <div class="field" style="flex:0 0 auto; padding:8px 0">
+    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">Select Your Entity Type:</div>
+    <div class="radio-group" style="flex-direction:column;gap:8px;align-items:flex-start">
+      <label><input type="radio" name="entity_type" value="scorp" required onchange="handleEntityChange()"> S Corporation</label>
+      <label><input type="radio" name="entity_type" value="ccorp" onchange="handleEntityChange()"> C Corporation</label>
+      <label><input type="radio" name="entity_type" value="partnership" onchange="handleEntityChange()"> Partnership</label>
+      <label><input type="radio" name="entity_type" value="llc" onchange="handleEntityChange()"> LLC</label>
+    </div>
+  </div>
+</div>
+</div></section><section id="sec-general" class="form-section"><div class="section-header"><h2>General Information</h2></div><div class="section-body">
+<div class="subsection-title">Business Entity Details</div>
+<div class="field-row">
+  <div class="field"><label>Legal Name of Entity</label><input type="text" name="bus_legal_name" required></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Employer Identification Number (EIN)</label><input type="text" name="bus_ein" placeholder="XX-XXXXXXX" required data-mask="ein"></div>
+</div>
+<div class="subsection"><div class="subsection-title">Business Address</div></div>
+<div class="field-row">
+  <div class="field"><label>Street Address</label><input type="text" name="bus_address" required></div>
+</div>
+<div class="field-row">
+  <div class="field field-third"><label>City</label><input type="text" name="bus_city" required></div>
+  <div class="field field-quarter"><label>State</label><select name="bus_state" required><option value="">Select</option><option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option><option value="DC">DC</option><option value="PR">PR</option><option value="VI">VI</option><option value="GU">GU</option><option value="AS">AS</option><option value="MP">MP</option></select></div>
+  <div class="field field-quarter"><label>Zip Code</label><input type="text" name="bus_zip" required maxlength="10"></div>
+</div>
+<div class="checkbox-row"><label><input type="checkbox" name="bus_new_address" onchange=""> New address (if different from prior year)</label></div>
+<div class="subsection"><div class="subsection-title">Representative Information</div></div>
+<div class="field-row">
+  <div class="field field-half"><label>Name</label><input type="text" name="rep_name" required></div>
+  <div class="field field-half"><label>Title</label><input type="text" name="rep_title" required></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Email</label><input type="email" name="rep_email"></div>
+  <div class="field field-half"><label>Phone</label><input type="text" name="rep_phone" placeholder="XXX-XXX-XXXX" data-mask="phone"></div>
+</div>
+<div class="subsection"><div class="subsection-title">Business Operations</div></div>
+<div class="field-row">
+  <div class="field field-half"><label>Principal Business Activity</label><input type="text" name="bus_activity" required></div>
+  <div class="field field-half"><label>Principal Product or Service</label><input type="text" name="bus_product" required></div>
+</div>
+<div class="field-row">
+  <div class="field field-quarter"><label>Date Business Started</label><input type="date" name="bus_start_date" required></div>
+  <div class="field field-quarter"><label>Date Business Closed (if applicable)</label><input type="date" name="bus_close_date"></div>
+</div>
+<div class="subsection"><div class="subsection-title">Tax Questions</div></div>
+<div class="field-row">
+  <div class="field field-half"><label>Primary purpose is to realize a profit?</label>
+    <div class="radio-group"><label><input type="radio" name="bus_profit_purpose" value="yes" required> Yes</label><label><input type="radio" name="bus_profit_purpose" value="no"> No</label></div>
+  </div>
+  <div class="field field-half"><label>Has the business reported losses in prior years?</label>
+    <div class="radio-group"><label><input type="radio" name="bus_prior_losses" value="yes" required> Yes</label><label><input type="radio" name="bus_prior_losses" value="no"> No</label></div>
+  </div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Accounting Method</label>
+    <select name="bus_accounting_method" required>
+      <option value="">Select accounting method</option>
+      <option value="cash">Cash</option>
+      <option value="accrual">Accrual</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+  <div class="field field-half"><label>Does the entity file under a calendar year?</label>
+    <div class="radio-group"><label><input type="radio" name="bus_calendar_year" value="yes" required> Yes</label><label><input type="radio" name="bus_calendar_year" value="no"> No</label></div>
+  </div>
+</div>
+<div id="fiscal-year-block" style="display:none">
+  <div class="field-row">
+    <div class="field"><label>If no, what is the fiscal year end date? (MM/DD)</label><input type="text" name="bus_fiscal_year" placeholder="MM/DD"></div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('input[name="bus_calendar_year"]').forEach(r => {
+    r.addEventListener('change', function() {
+      document.getElementById('fiscal-year-block').style.display = this.value === 'no' ? 'block' : 'none';
+    });
+  });
+</script>
+<div class="subsection"><div class="subsection-title">Entity-Specific Information</div></div>
+<!-- Partnership Type (Partnership only) -->
+<div data-entity="partnership" style="display:none">
+  <div class="field-row">
+    <div class="field field-half"><label>Partnership Type</label>
+      <select name="partnership_type">
+        <option value="">Select partnership type</option>
+        <option value="general">General Partnership (GP)</option>
+        <option value="limited">Limited Partnership (LP)</option>
+        <option value="llp">Limited Liability Partnership (LLP)</option>
+      </select>
+    </div>
+  </div>
+</div>
+<!-- LLC Corporate Tax Election (LLC only) -->
+<div data-entity="llc" style="display:none">
+  <div class="field-row">
+    <div class="field field-half"><label>Has the LLC made a corporate tax election?</label>
+      <div class="radio-group"><label><input type="radio" name="llc_corp_election" value="yes"> Yes</label><label><input type="radio" name="llc_corp_election" value="no"> No</label></div>
+    </div>
+  </div>
+</div>
+<!-- Personal Service Corporation (C Corp only) -->
+<div data-entity="ccorp" style="display:none">
+  <div class="field-row">
+    <div class="field field-half"><label>Is the corporation a Personal Service Corporation (PSC)?</label>
+      <div class="radio-group"><label><input type="radio" name="ccorp_psc" value="yes"> Yes</label><label><input type="radio" name="ccorp_psc" value="no"> No</label></div>
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field currency-field field-half"><label>Total Assets at End of Tax Year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ccorp_total_assets" class="currency-input" inputmode="decimal"></div></div>
+  </div>
+</div>
+</div></section><section id="sec-screen-scorp" class="form-section"><div class="section-header"><h2>S Corporation Screening Questions</h2></div><div class="section-body">
+<div data-entity="scorp">
+<div class="yn-group-title">S Corporation Screening Questions</div>
+<div class="yn-row" data-trigger="q_scorp_1">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_1" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_1" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation hold an annual meeting with shareholders with a record of minutes maintained?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_2">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_2" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_2" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Was the corporation a C corporation before it elected to be an S corporation?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_3">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_3" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_3" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is any shareholder in the corporation a disregarded entity, partnership, trust, S corporation, or estate?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_4">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_4" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_4" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation own directly 20% or more, or own, directly or indirectly, 50% or more of the total stock issued and outstanding of any foreign or domestic corporation?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_5">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_5" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_5" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation own directly an interest of 20% or more, or own, directly or indirectly, an interest of 50% or more in the profit, loss, or capital in any foreign or domestic partnership or in the beneficial interest of a trust?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_6">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_6" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_6" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation have any outstanding shares of restricted stock at the end of the tax year?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_7">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_7" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_7" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation have any outstanding stock options, warrants, or similar instruments at the end of the tax year?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_8">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_8" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_8" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation have any non-shareholder debt that was cancelled, forgiven, or had terms modified to reduce amount of principal?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_9">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_9" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_9" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Was the corporation's S election terminated or revoked during the year?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_10">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_10" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_10" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during the year did the corporation have an interest in, or signature authority over, a financial account in a foreign country?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_11">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_11" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_11" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Was there a distribution of property or a transfer (by sale or death) of a shareholder interest during the tax year?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_12">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_12" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_12" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation pay $600 or more of nonemployee compensation to any individual? If yes, include a copy of Form 1099-NEC for each.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_13">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_13" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_13" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation have a Paycheck Protection Program (PPP) loan that was forgiven in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_scorp_14">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_scorp_14" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_scorp_14" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during this tax year, did the corporation (a) receive a digital asset (as a reward, award, or payment for property or services); or (b) sell, exchange, or otherwise dispose of a digital asset (or a financial interest in a digital asset)?</div>
+  
+</div>
+</div>
+</div></section><section id="sec-screen-ccorp" class="form-section"><div class="section-header"><h2>C Corporation Screening Questions</h2></div><div class="section-body">
+<div data-entity="ccorp">
+<div class="yn-group-title">C Corporation Screening Questions</div>
+<div class="yn-row" data-trigger="q_ccorp_1">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_1" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_1" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Has the corporation been notified of any changes to previous returns by any taxing authority? If yes, provide copies of all correspondence.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_2">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_2" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_2" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Provide a schedule of ownership changes during the year, including dates and number of shares or percentage of ownership.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_3">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_3" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_3" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Have there been any changes to the shareholder's buy-sell agreements? If yes, provide a copy.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_4">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_4" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_4" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation hold an annual meeting with shareholders with a record of minutes maintained?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_5">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_5" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_5" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Has the corporation updated its minute book for the year? If yes, provide a copy.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_6">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_6" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_6" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation purchase or sell a business or business segment during the year? If yes, provide a copy of the contract or agreement.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_7">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_7" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_7" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation engage in any new activities during the year? If yes, describe the new business on an attached sheet.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_8">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_8" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_8" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation discontinue operations this year? If yes, provide details.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_9">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_9" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_9" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Does the corporation have any qualified retirement plan (e.g., 401k)? If yes, provide copies of plan documents.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_10">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_10" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_10" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Does the corporation have a SEP or SIMPLE plan? If yes, do contributions need to be calculated?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_11">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_11" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_11" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Does the corporation have a cafeteria plan?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_12">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_12" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_12" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Does the corporation have a nonqualified deferred compensation plan or agreement?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_13">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_13" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_13" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Does the corporation have any other benefit plan not described above?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_14">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_14" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_14" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation include taxable fringe benefits such as educational assistance in excess of $5,250, nonaccountable expense allowances, or personal use of corporate vehicles in compensation on employees' Forms W-2?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_15">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_15" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_15" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is the corporation a subsidiary in an affiliated group or a parent-subsidiary controlled group?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_16">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_16" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_16" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is any shareholder in the corporation a disregarded entity, partnership, trust, S corporation, or estate?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_17">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_17" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_17" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did any foreign or domestic corporation, partnership, trust, or tax-exempt organization own directly 20% or more, or own, directly or indirectly, 50% or more of the total voting power of all classes of the corporation's stock entitled to vote?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_18">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_18" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_18" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did any individual or estate own directly 20% or more, or own, directly or indirectly, 50% or more of the total voting power of all classes of the corporation's stock entitled to vote?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_19">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_19" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_19" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation own directly 20% or more, or own, directly or indirectly, 50% or more of the total voting power of all classes of stock entitled to vote of any foreign or domestic corporation not already included in a listing of affiliated groups?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_20">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_20" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_20" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation own directly an interest of 20% or more, or own, directly or indirectly, an interest of 50% or more in any foreign or domestic partnership or in the beneficial interest of a trust?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_21">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_21" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_21" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during the tax year, did one foreign person own, directly or indirectly, at least 25% of the total voting power of all classes of the corporation's stock entitled to vote or the total value of all classes of stock?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_22">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_22" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_22" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation have an 80% or more change in ownership, including a change due to redemption of its own stock?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_23">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_23" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_23" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation dispose of more than 65% of its assets in a taxable, nontaxable, or tax deferred transaction?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_24">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_24" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_24" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation receive assets in a property-for-stock nontaxable exchange in which any of the transferred assets had a fair market basis or fair market value of more than $1 million?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_25">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_25" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_25" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during the year did the corporation have an interest in, or signature authority over, a financial account in a foreign country?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_26">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_26" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_26" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Was there a distribution of property or a transfer (by sale or death) of a shareholder interest during the tax year?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_27">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_27" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_27" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Does the corporation satisfy the following conditions? Total receipts less than $250,000 AND total assets less than $250,000.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_28">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_28" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_28" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation pay $600 or more of nonemployee compensation to any individual? If yes, include a copy of Form 1099-NEC for each.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_29">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_29" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_29" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation use any vehicles for business? If yes, include total business miles for each vehicle.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_30">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_30" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_30" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the corporation have a Paycheck Protection Program (PPP) loan that was forgiven in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ccorp_31">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ccorp_31" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ccorp_31" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during this tax year, did the corporation (a) receive a digital asset (as a reward, award, or payment for property or services); or (b) sell, exchange, or otherwise dispose of a digital asset (or a financial interest in a digital asset)?</div>
+  
+</div>
+</div>
+</div></section><section id="sec-screen-partnership" class="form-section"><div class="section-header"><h2>Partnership Screening Questions</h2></div><div class="section-body">
+<div data-entity="partnership">
+<div class="yn-group-title">Partnership Screening Questions</div>
+<div class="yn-row" data-trigger="q_part_1">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_1" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_1" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is there a written partnership agreement? (If this is the first year, provide a copy)</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_2">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_2" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_2" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Are all partners actively participating in the business?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_3">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_3" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_3" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is any partner in the partnership a disregarded entity, partnership, trust, S corporation, or estate?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_4">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_4" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_4" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is the partnership a partner in another partnership?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_5">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_5" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_5" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did any foreign or domestic corporation, partnership, trust, tax-exempt organization, individual, or estate own directly or indirectly 50% or more of the profit, loss, or capital of the partnership?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_6">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_6" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_6" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the partnership own directly 20% or more, or own, directly or indirectly, 50% or more of the total voting power of all classes of stock entitled to vote of any foreign or domestic corporation?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_7">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_7" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_7" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the partnership have any debt that was cancelled, was forgiven, or had the terms modified so as to reduce principal amount of debt?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_8">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_8" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_8" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during the year did the partnership have an interest in, or signature authority over, a financial account in a foreign country?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_9">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_9" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_9" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Was there a distribution of property or a transfer (by sale or death) of a partnership interest during the tax year?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_10">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_10" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_10" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the partnership pay $600 or more of nonemployee compensation to any individual? If yes, include a copy of Form 1099-NEC for each.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_11">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_11" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_11" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the partnership have a Paycheck Protection Program (PPP) loan that was forgiven in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_part_12">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_part_12" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_part_12" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during this tax year, did the partnership (a) receive a digital asset (as a reward, award, or payment for property or services); or (b) sell, exchange, or otherwise dispose of a digital asset (or a financial interest in a digital asset)?</div>
+  
+</div>
+</div>
+</div></section><section id="sec-screen-llc" class="form-section"><div class="section-header"><h2>LLC Screening Questions</h2></div><div class="section-body">
+<div data-entity="llc">
+<div class="yn-group-title">LLC Screening Questions</div>
+<div class="yn-row" data-trigger="q_llc_1">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_1" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_1" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Does the LLC have an operating agreement? (If first year, provide a copy of the Operating Agreement and Articles of Organization)</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_2">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_2" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_2" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Are all members actively participating in the business?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_3">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_3" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_3" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is any member in the LLC a disregarded entity, partnership, trust, S corporation, or estate?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_4">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_4" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_4" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Is the LLC a partner in another partnership?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_5">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_5" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_5" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did any foreign or domestic corporation, partnership, trust, tax-exempt organization, individual, or estate own directly or indirectly 50% or more of the profit, loss, or capital of the LLC?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_6">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_6" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_6" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the LLC own directly 20% or more, or own, directly or indirectly, 50% or more of the total voting power of all classes of stock entitled to vote of any foreign or domestic corporation?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_7">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_7" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_7" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the LLC have any debt that was cancelled, was forgiven, or had the terms modified so as to reduce principal amount of debt?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_8">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_8" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_8" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during the year did the LLC have an interest in, or signature authority over, a financial account in a foreign country?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_9">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_9" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_9" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Was there a distribution of property or a transfer (by sale or death) of an LLC interest during the tax year?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_10">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_10" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_10" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the LLC pay $600 or more to any individual? If yes, include a copy of Form 1099-NEC for each.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_11">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_11" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_11" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the LLC have a Paycheck Protection Program (PPP) loan that was forgiven in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_llc_12">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_llc_12" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_llc_12" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">At any time during this tax year, did the LLC (a) receive a digital asset (as a reward, award, or payment for property or services); or (b) sell, exchange, or otherwise dispose of a digital asset (or a financial interest in a digital asset)?</div>
+  
+</div>
+</div>
+</div></section><section id="sec-owners" class="form-section"><div class="section-header"><h2>Ownership / Members / Partners / Shareholders</h2></div><div class="section-body">
+<div class="field-row">
+  <div class="field"><label>How many <span class="entity-label">shareholders</span> were there on the last day of the year?</label><input type="text" name="owners_count" inputmode="numeric"></div>
+</div>
+<p class="form-note">Add rows for each <span class="entity-label">shareholder</span>. Columns will adjust based on entity type.</p>
+<table class="dynamic-table" id="owners-table">
+  <thead>
+    <tr id="owners-header">
+      <th>Name/Title</th>
+      <th>Tax ID (SSN or EIN)</th>
+      <th>Address</th>
+      <th class="col-ownership">Ownership %</th>
+      <th class="col-basis" data-entity="scorp" style="display:none">Stock Basis ($)</th>
+      <th class="col-shares-start" data-entity="ccorp" style="display:none"># Shares (Start)</th>
+      <th class="col-shares-end" data-entity="ccorp" style="display:none"># Shares (End)</th>
+      <th class="col-dividends" data-entity="ccorp" style="display:none">Dividends ($)</th>
+      <th class="col-partner-type" data-entity="partnership" style="display:none">Partner Type</th>
+      <th class="col-member-type" data-entity="llc" style="display:none">Member Type</th>
+      <th class="col-us-citizen">U.S. Citizen</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<button type="button" class="btn-add" onclick="addOwnerRow()">+ Add <span class="entity-label">Shareholder</span></button>
+</div></section><section id="sec-owner-trans" class="form-section"><div class="section-header"><h2>Owner/Partner/Member Transactions</h2></div><div class="section-body">
+<p class="form-note">Record transactions for each <span class="entity-label">shareholder</span> during the year.</p>
+<table class="dynamic-table" id="owner-trans-table">
+  <thead>
+    <tr id="owner-trans-header">
+      <th>Name</th>
+      <th class="col-wages" data-entity="scorp" style="display:none">Wages Paid ($)</th>
+      <th class="col-wages" data-entity="ccorp" style="display:none">Wages Paid ($)</th>
+      <th class="col-guaranteed" data-entity="partnership" style="display:none">Guaranteed Payments ($)</th>
+      <th class="col-guaranteed" data-entity="llc" style="display:none">Guaranteed Payments ($)</th>
+      <th class="col-health-insurance" data-entity="scorp" style="display:none">Health Insurance Premiums ($)</th>
+      <th class="col-health-insurance" data-entity="partnership" style="display:none">Health Insurance Premiums ($)</th>
+      <th class="col-health-insurance" data-entity="llc" style="display:none">Health Insurance Premiums ($)</th>
+      <th>Capital Contributions ($)</th>
+      <th>Distributions ($)</th>
+      <th><span class="entity-label">Shareholder</span> Loans to <span class="entity-label entity-lower">corporation</span> ($)</th>
+      <th>Loans Repaid by <span class="entity-label entity-lower">corporation</span> ($)</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<button type="button" class="btn-add" onclick="addTransactionRow()">+ Add Transaction</button>
+</div></section><section id="sec-balance-sheet" class="form-section"><div class="section-header"><h2>Balance Sheet at End of Year</h2></div><div class="section-body">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <!-- Assets -->
+  <div>
+    <div style="font-weight:700;color:#2C5F8A;margin-bottom:12px">ASSETS</div>
+    <div class="field currency-field"><label>Bank account end of year balance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_bank_balance" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Accounts receivable at end of year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_ar_eoY" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Inventories</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_inventory" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Loans to <span class="entity-label">shareholders</span></label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_loans_out" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Mortgages and loans held by <span class="entity-label entity-lower">corporation</span></label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_mortgages_held" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Stocks, bonds, and securities</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_securities" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Other current assets</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_other_assets" class="currency-input" inputmode="decimal"></div></div>
+  </div>
+  <!-- Liabilities -->
+  <div>
+    <div style="font-weight:700;color:#2C5F8A;margin-bottom:12px">LIABILITIES &amp; EQUITY</div>
+    <div class="field currency-field"><label>Accounts payable at year end</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_ap" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Payables less than one year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_payables_short" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field"><label>Payables more than one year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_payables_long" class="currency-input" inputmode="decimal"></div></div>
+    <div data-entity="scorp">
+      <div class="field currency-field"><label>Mortgages, notes payable</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_mortgages_payable" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div data-entity="ccorp">
+      <div class="field currency-field"><label>Mortgages, notes payable</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_mortgages_payable_ccorp" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div data-entity="partnership">
+      <div class="field currency-field"><label>Nonrecourse loans</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_nonrecourse_loans" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div data-entity="llc">
+      <div class="field currency-field"><label>Mortgages, notes payable</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_mortgages_payable_llc" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div class="field currency-field"><label>Loans from <span class="entity-label">shareholders</span></label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_loans_in" class="currency-input" inputmode="decimal"></div></div>
+    <div data-entity="scorp">
+      <div class="field currency-field"><label>Capital stock (common)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_capital_stock" class="currency-input" inputmode="decimal"></div></div>
+      <div class="field currency-field"><label>Retained earnings</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_retained_earnings_scorp" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div data-entity="ccorp">
+      <div class="field currency-field"><label>Capital stock (preferred)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_capital_preferred" class="currency-input" inputmode="decimal"></div></div>
+      <div class="field currency-field"><label>Capital stock (common)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_capital_common" class="currency-input" inputmode="decimal"></div></div>
+      <div class="field currency-field"><label>Retained earnings</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_retained_earnings_ccorp" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div data-entity="partnership">
+      <div class="field currency-field"><label>Partners' capital accounts</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_partners_capital" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div data-entity="llc">
+      <div class="field currency-field"><label>LLC capital accounts</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="bs_llc_capital" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+  </div>
+</div>
+</div></section><section id="sec-income" class="form-section"><div class="section-header"><h2>Income</h2></div><div class="section-body">
+<div class="field currency-field field-half"><label>Gross receipts or sales</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="inc_gross_receipts" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field field-half"><label>Returns and allowances</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="inc_returns" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field field-half"><label>Interest income (include all Forms 1099-INT)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="inc_interest" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field field-half"><label>Dividend income (include all Forms 1099-DIV)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="inc_dividend" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field field-half"><label>Capital gain/loss (include all Forms 1099-B)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="inc_capital_gain" class="currency-input" inputmode="decimal"></div></div>
+<div class="field" style="flex:1 1 calc(50% - 6px);min-width:200px">
+  <label>Other income/loss (include a statement)</label>
+  <textarea name="inc_other_income" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px;height:80px"></textarea>
+</div>
+<div data-entity="ccorp">
+  <div class="field currency-field"><label>Gross income from rental property owned by corporation</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="inc_rental_ccorp" class="currency-input" inputmode="decimal"></div></div>
+</div>
+</div></section><section id="sec-cogs" class="form-section"><div class="section-header"><h2>Cost of Goods Sold</h2></div><div class="section-body">
+<div class="field currency-field field-half"><label>Inventory at beginning of the year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="cogs_inventory_start" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field field-half"><label>Inventory at end of the year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="cogs_inventory_end" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field field-half"><label>Purchases</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="cogs_purchases" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field field-half"><label>Materials and supplies</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="cogs_materials" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field"><label>Cost of labor</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="cogs_labor" class="currency-input" inputmode="decimal"></div></div>
+</div></section><section id="sec-expenses" class="form-section"><div class="section-header"><h2>Expenses</h2></div><div class="section-body">
+<div class="expense-grid">
+<div class="expense-item"><label>Advertising</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_advertising" class="currency-input"></div></div><div class="expense-item"><label>Bad debts</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_bad_debts" class="currency-input"></div></div><div class="expense-item"><label>Bank charges</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_bank_charges" class="currency-input"></div></div><div class="expense-item"><label>Business licenses</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_business_licenses" class="currency-input"></div></div><div class="expense-item"><label>Commissions and fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_commissions" class="currency-input"></div></div><div class="expense-item"><label>Contract labor</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_contract_labor" class="currency-input"></div></div><div class="expense-item"><label>Employee benefit programs</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_employee_benefits" class="currency-input"></div></div><div class="expense-item"><label>Employee health care plans</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_employee_health" class="currency-input"></div></div><div class="expense-item"><label>Entertainment (not deductible)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_entertainment" class="currency-input"></div></div><div class="expense-item"><label>Insurance (other than health)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_insurance" class="currency-input"></div></div><div class="expense-item"><label>Interest – business credit cards</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_interest_cc" class="currency-input"></div></div><div class="expense-item"><label>Interest – business loans/credit lines</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_interest_business" class="currency-input"></div></div><div class="expense-item"><label>Interest – mortgage</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_interest_mortgage" class="currency-input"></div></div><div class="expense-item"><label>Internet service</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_internet" class="currency-input"></div></div><div class="expense-item"><label>Legal and professional services</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_legal" class="currency-input"></div></div><div class="expense-item"><label>Meals – business</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_meals" class="currency-input"></div></div><div class="expense-item"><label>Office supplies</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_office_supplies" class="currency-input"></div></div><div class="expense-item"><label>Organization costs</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_organization" class="currency-input"></div></div><div class="expense-item"><label>Pension and profit sharing plans</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_pension" class="currency-input"></div></div><div class="expense-item"><label>Professional education and training</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_education" class="currency-input"></div></div><div class="expense-item"><label>Rent or lease – car/machinery/equipment</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_rent_equipment" class="currency-input"></div></div><div class="expense-item"><label>Rent or lease – other business property</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_rent_property" class="currency-input"></div></div><div class="expense-item"><label>Repairs and maintenance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_repairs" class="currency-input"></div></div><div class="expense-item"><label>Taxes – payroll</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_payroll" class="currency-input"></div></div><div class="expense-item"><label>Taxes – property</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_property" class="currency-input"></div></div><div class="expense-item"><label>Taxes – sales</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_sales" class="currency-input"></div></div><div class="expense-item"><label>Telephone</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_telephone" class="currency-input"></div></div><div class="expense-item"><label>Utilities</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_utilities" class="currency-input"></div></div><div class="expense-item" data-entity="scorp" style="display:none"><label>Compensation of officers</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_compensation_officers" class="currency-input"></div></div><div class="expense-item" data-entity="scorp" style="display:none"><label>Health care plans – shareholder</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_health_shareholder" class="currency-input"></div></div><div class="expense-item" data-entity="scorp" style="display:none"><label>Pension and profit sharing plans – shareholder</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_pension_shareholder" class="currency-input"></div></div><div class="expense-item" data-entity="scorp" style="display:none"><label>Salaries and wages (include Forms W-2)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_wages" class="currency-input"></div></div><div class="expense-item" data-entity="scorp" style="display:none"><label>Annual corporation fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_corp_fees" class="currency-input"></div></div><div class="expense-item" data-entity="scorp" style="display:none"><label>Cleaning/janitorial</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_cleaning" class="currency-input"></div></div><div class="expense-item" data-entity="ccorp" style="display:none"><label>Compensation of officers</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_compensation_officers" class="currency-input"></div></div><div class="expense-item" data-entity="ccorp" style="display:none"><label>Health care plans – shareholder</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_health_shareholder" class="currency-input"></div></div><div class="expense-item" data-entity="ccorp" style="display:none"><label>Pension and profit sharing plans – shareholder</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_pension_shareholder" class="currency-input"></div></div><div class="expense-item" data-entity="ccorp" style="display:none"><label>Salaries and wages (include Forms W-2)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_wages" class="currency-input"></div></div><div class="expense-item" data-entity="ccorp" style="display:none"><label>Annual corporation fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_corp_fees" class="currency-input"></div></div><div class="expense-item" data-entity="ccorp" style="display:none"><label>Cleaning/janitorial</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_cleaning" class="currency-input"></div></div><div class="expense-item" data-entity="ccorp" style="display:none"><label>Charitable contributions</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_charitable_ccorp" class="currency-input"></div></div><div class="expense-item" data-entity="partnership" style="display:none"><label>Guaranteed payments to <span class="entity-label">partners</span></label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_guaranteed_payments" class="currency-input"></div></div><div class="expense-item" data-entity="partnership" style="display:none"><label>Gifts</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_gifts" class="currency-input"></div></div><div class="expense-item" data-entity="partnership" style="display:none"><label>Wages</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_wages_partnership" class="currency-input"></div></div><div class="expense-item" data-entity="partnership" style="display:none"><label>Taxes – state</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_state" class="currency-input"></div></div><div class="expense-item" data-entity="llc" style="display:none"><label>Guaranteed payments to <span class="entity-label">partners</span></label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_guaranteed_payments" class="currency-input"></div></div><div class="expense-item" data-entity="llc" style="display:none"><label>Gifts</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_gifts" class="currency-input"></div></div><div class="expense-item" data-entity="llc" style="display:none"><label>Wages</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_wages_partnership" class="currency-input"></div></div><div class="expense-item" data-entity="llc" style="display:none"><label>Taxes – state</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_state" class="currency-input"></div></div><div class="expense-item"><label>Other expense 1</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other_1" class="currency-input"></div></div><div class="expense-item"><label>Other expense 2</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other_2" class="currency-input"></div></div><div class="expense-item"><label>Other expense 3</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other_3" class="currency-input"></div></div></div>
+</div></section><section id="sec-car" class="form-section"><div class="section-header"><h2>Car/Vehicle Expenses</h2></div><div class="section-body">
+<p class="form-note">For each vehicle used for business, provide details below.</p>
+<table class="dynamic-table" id="car-table">
+  <thead>
+    <tr>
+      <th>Make/Model</th>
+      <th>Date Placed in Service</th>
+      <th>Personal Use (Y/N)</th>
+      <th>Total Miles</th>
+      <th>Business Miles</th>
+      <th>Actual Expenses ($)</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<button type="button" class="btn-add" onclick="addCarRow()">+ Add Vehicle</button>
+</div></section><section id="sec-equipment-purchase" class="form-section"><div class="section-header"><h2>Equipment Purchases</h2></div><div class="section-body">
+<p class="form-note">Record all equipment and assets purchased during the year.</p>
+<table class="dynamic-table" id="equipment-table">
+  <thead>
+    <tr>
+      <th>Asset Description</th>
+      <th>Date Purchased</th>
+      <th>Cost ($)</th>
+      <th>Date Placed in Service</th>
+      <th>New or Used?</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<button type="button" class="btn-add" onclick="addEquipmentRow()">+ Add Equipment</button>
+</div></section><section id="sec-equipment-sold" class="form-section"><div class="section-header"><h2>Equipment Sold or Disposed</h2></div><div class="section-body">
+<p class="form-note">Record all equipment and assets sold or disposed during the year.</p>
+<table class="dynamic-table" id="equipment-sold-table">
+  <thead>
+    <tr>
+      <th>Asset Description</th>
+      <th>Date Out of Service</th>
+      <th>Date Sold</th>
+      <th>Selling Price/FMV ($)</th>
+      <th>Trade-in?</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<button type="button" class="btn-add" onclick="addEquipmentSoldRow()">+ Add Disposal</button>
+</div></section><section id="sec-credits" class="form-section"><div class="section-header"><h2>Business Credits</h2></div><div class="section-body">
+<div class="yn-group-title">Business Credit Questions</div>
+<div class="yn-row" data-trigger="q_credit_1">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_credit_1" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_credit_1" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the business pay expenses to make it accessible by individuals with disabilities?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_credit_2">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_credit_2" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_credit_2" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the business pay any FICA taxes on employee wages for tips above minimum wage?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_credit_3">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_credit_3" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_credit_3" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the business own any residential rental buildings providing qualified low-income housing?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_credit_4">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_credit_4" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_credit_4" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the business incur any research and experimental expenditures after 2021?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_credit_5">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_credit_5" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_credit_5" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the business have employer pension plan start-up costs?</div>
+  <div class="yn-detail"><div class="field-row"><div class="field field-quarter"><label>Total number of employees</label><input type="text" name="credit_5_employees"></div></div></div>
+</div>
+<div class="yn-row" data-trigger="q_credit_6">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_credit_6" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_credit_6" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the business pay health insurance premiums for employees?</div>
+  <div class="yn-detail"><div class="field-row"><div class="field field-quarter"><label>Total number of employees</label><input type="text" name="credit_6_employees"></div></div></div>
+</div>
+<div class="yn-row" data-trigger="q_credit_7">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_credit_7" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_credit_7" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did the business purchase and place in service any electric vehicles or energy efficient commercial building property?</div>
+  
+</div>
+</div></section><section id="sec-estimated" class="form-section"><div class="section-header"><h2>Estimated & PTE Tax Payments</h2></div><div class="section-body">
+<div class="subsection-title">Federal Estimated Payments</div>
+<table class="dynamic-table" id="fed-est-table">
+  <thead>
+    <tr>
+      <th>Quarter</th>
+      <th>Amount ($)</th>
+      <th>Date Paid</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1st Installment</td>
+      <td><input type="text" name="est_fed_q1" class="currency-input"></td>
+      <td><input type="date" name="est_fed_q1_date"></td>
+    </tr>
+    <tr>
+      <td>2nd Installment</td>
+      <td><input type="text" name="est_fed_q2" class="currency-input"></td>
+      <td><input type="date" name="est_fed_q2_date"></td>
+    </tr>
+    <tr>
+      <td>3rd Installment</td>
+      <td><input type="text" name="est_fed_q3" class="currency-input"></td>
+      <td><input type="date" name="est_fed_q3_date"></td>
+    </tr>
+    <tr>
+      <td>4th Installment</td>
+      <td><input type="text" name="est_fed_q4" class="currency-input"></td>
+      <td><input type="date" name="est_fed_q4_date"></td>
+    </tr>
+  </tbody>
+</table>
+<div class="subsection"><div class="subsection-title">State Estimated Payments</div></div>
+<p class="form-note">Add a row for each state where estimated tax payments were made.</p>
+<table class="dynamic-table" id="state-est-table">
+  <thead>
+    <tr>
+      <th>State</th>
+      <th>Q1 ($)</th>
+      <th>Q1 Date</th>
+      <th>Q2 ($)</th>
+      <th>Q2 Date</th>
+      <th>Q3 ($)</th>
+      <th>Q3 Date</th>
+      <th>Q4 ($)</th>
+      <th>Q4 Date</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<button type="button" class="btn-add" onclick="addStateEstRow()">+ Add State</button>
+<div class="subsection"><div class="subsection-title">Prior Year Credits</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="field currency-field"><label>Federal amount applied from prior year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_fed_prior" class="currency-input" inputmode="decimal"></div></div>
+<div class="field currency-field"><label>State amount applied from prior year</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_state_prior" class="currency-input" inputmode="decimal"></div></div>
+</div>
+</div></section><section id="sec-new-client" class="form-section"><div class="section-header"><h2>New Client Information</h2></div><div class="section-body">
+<p class="form-note">Please provide the following documents and information if this is your first year with our firm.</p>
+<div class="subsection-title">All Clients – Required Documents</div>
+<p style="font-size:13px;line-height:1.6;margin:8px 0">
+• Business income and financial statements for the year<br>
+• Balance sheet, depreciation schedule, cash reconciliation<br>
+• If employees: Copies of all Forms W-2, W-3, 940, 941, 1096, 1099-NEC, 1099-MISC, state tax filing reports<br>
+• Note: Multi-state withholding requirements apply if you have employees in multiple states
+</p>
+<div class="subsection"><div class="subsection-title">New Client – Entity-Specific Documents</div></div>
+<div data-entity="scorp">
+  <p style="font-size:13px;line-height:1.6;margin:8px 0">
+  <strong>S Corporation:</strong><br>
+  • Date incorporated and state of incorporation<br>
+  • State of domicile<br>
+  • Date of S election<br>
+  • Form 2553 (S Election)<br>
+  • Articles of Incorporation<br>
+  • Bylaws<br>
+  • Corporate resolutions<br>
+  • Depreciation schedules<br>
+  • Prior tax returns (at least 1 year)
+  </p>
+</div>
+<div data-entity="ccorp">
+  <p style="font-size:13px;line-height:1.6;margin:8px 0">
+  <strong>C Corporation:</strong><br>
+  • Date incorporated and state of incorporation<br>
+  • State of domicile<br>
+  • Articles of Incorporation<br>
+  • Bylaws<br>
+  • Corporate resolutions<br>
+  • Shareholder buy-sell agreements<br>
+  • Depreciation schedules<br>
+  • Prior 3 years of tax returns
+  </p>
+</div>
+<div data-entity="partnership">
+  <p style="font-size:13px;line-height:1.6;margin:8px 0">
+  <strong>Partnership:</strong><br>
+  • Date formed and state of formation<br>
+  • Partnership agreement<br>
+  • Organizational documents<br>
+  • Depreciation schedules<br>
+  • Prior tax returns (at least 1 year)
+  </p>
+</div>
+<div data-entity="llc">
+  <p style="font-size:13px;line-height:1.6;margin:8px 0">
+  <strong>LLC:</strong><br>
+  • Date formed and state of formation<br>
+  • Articles of Organization<br>
+  • Operating Agreement<br>
+  • Depreciation schedules<br>
+  • Prior tax returns (at least 1 year)
+  </p>
+</div>
+</div></section><section id="sec-responsibilities" class="form-section"><div class="section-header"><h2>Responsibilities &amp; Signature</h2></div><div class="section-body">
+<p style="font-size:13px;line-height:1.6;margin-bottom:16px">
+By signing below, I certify that I have examined and approved the information provided in this organizer.
+I am aware that false statements on this document may result in penalties under Section 7206 of the
+Internal Revenue Code. I authorize my tax professional to prepare and file the entity's return(s) based
+on the information provided here.
+</p>
+<div class="subsection"><div class="subsection-title">Electronic Signature</div></div>
+<div class="sig-block">
+  <label class="sig-label">Type your full legal name to sign:</label>
+  <input type="text" class="sig-input" name="sig_name" placeholder="Full Legal Name" required>
+  <div class="sig-label" style="margin-top:8px">Title:</div>
+  <input type="text" class="sig-input" name="sig_title" placeholder="e.g., President, Managing Member" required>
+  <div class="sig-label" style="margin-top:8px">Date:</div>
+  <input type="date" name="sig_date" required readonly style="max-width:200px;border:none;border-bottom:2px solid var(--accent);background:transparent">
+</div>
+<p class="sig-meta" id="sig-meta"></p>
+</div></section><section id="sec-privacy" class="form-section"><div class="section-header"><h2>Privacy &amp; Security</h2></div><div class="section-body"><div class="collapsible collapsed">
+  <div class="collapsible-header" onclick="toggleCollapsible(this)">Click to read our Privacy Policy<span class="collapse-icon">&#9660;</span></div>
+  <div class="collapsible-content">
+<p><strong>Privacy Protection:</strong> This form does not store any data on our servers. All information you enter remains on your device until you click "Generate & Download." The PDF file is not password-protected, so please do not email it or transmit it over unsecured channels. Instead, upload the completed organizer to your secure Verifyle portal.</p>
+
+<p><strong>Data Handling:</strong> When you generate the PDF, the data on your device is used to create the document. Your information is not logged, archived, or transmitted to any server. Once you close this page or your session expires (after 30 minutes of inactivity), all data is permanently cleared from your browser.</p>
+
+<p><strong>Encryption & Security:</strong> We strongly recommend using Verifyle (or a similar secure portal) to transmit your completed organizer and supporting documents to your tax preparer. Verifyle provides end-to-end encryption to protect your sensitive financial and personal information.</p>
+
+<p><strong>Your Responsibilities:</strong> You are responsible for the accuracy and completeness of all information you provide. Please review your entries carefully before generating the PDF. Keep a copy for your records.</p>
+
+<p><strong>Questions?:</strong> If you have questions about this form or our privacy practices, contact your tax preparer or our firm directly.</p>
+</div>
+</div></div></section>
+<!-- Submit -->
+<div class="form-actions">
+  <p style="font-size:13px;color:#555;margin-bottom:16px">When you click Generate &amp; Download, a PDF of your completed organizer will be created and downloaded to your device. This PDF is not password-protected. Please upload it to your Verifyle portal for secure delivery to your preparer. Do not email it or transmit it over unsecured channels.</p>
+  <button type="submit" class="btn-submit">Generate &amp; Download Organizer</button>
+</div>
+
+</form>
+
+<!-- Confirmation Screen -->
+<div id="confirmation" class="confirmation">
+  <h2>&#10003; Organizer Generated Successfully</h2>
+  <p style="font-size:16px;color:#333">Thank you, <strong id="conf-name"></strong>.</p>
+  <div class="conf-detail">
+    <p><strong>Reference:</strong> <span id="conf-ref"></span></p>
+    <p><strong>Generated:</strong> <span id="conf-date"></span></p>
+    <p style="margin-top:12px"><strong>Next Steps:</strong></p>
+    <p>1. The PDF has been downloaded to your device. <strong>This PDF is not password-protected.</strong> Please do not email it or transmit it over unsecured channels.</p>
+    <p>2. Upload the completed organizer PDF to your <strong>Verifyle portal</strong>. Verifyle provides end-to-end encryption to protect your sensitive information.</p>
+    <p>3. Upload your supporting documents (W-2s, 1099s, bank statements, etc.) to your <strong>Verifyle portal</strong> as well.</p>
+    <p>4. Your preparer will review the organizer and follow up with any additional questions.</p>
+  </div>
+</div>
+
+<!-- Timeout Warning -->
+<div id="timeout-overlay" class="timeout-overlay">
+  <div class="timeout-modal">
+    <h3>Session Timeout Warning</h3>
+    <p style="margin:12px 0">For your security, your session will expire due to inactivity. All entered data will be cleared.</p>
+    <button class="btn-continue" onclick="continueSession()">Continue Working</button>
+    <button class="btn-clear" onclick="clearAllData()">Clear Data Now</button>
+  </div>
+</div>
+
+</div><!-- /form-container -->
+
+<div class="form-footer">
+  &copy; 2026 Hellman &amp; Associates, LLC &mdash; All information collected is subject to our Privacy Policy.<br>
+  This form does not store any data on our servers. All data remains on your device until you submit.
+</div>
+
+<script>
+// ── Timeout management ──
+let timeoutId, warningId;
+const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const WARNING_MS = 25 * 60 * 1000; // warn at 25 min
+
+function resetTimeout() {
+  clearTimeout(timeoutId);
+  clearTimeout(warningId);
+  warningId = setTimeout(showTimeoutWarning, WARNING_MS);
+  timeoutId = setTimeout(clearAllData, TIMEOUT_MS);
+}
+
+function showTimeoutWarning() {
+  document.getElementById('timeout-overlay').style.display = 'flex';
+}
+
+function continueSession() {
+  document.getElementById('timeout-overlay').style.display = 'none';
+  resetTimeout();
+}
+
+function clearAllData() {
+  document.getElementById('timeout-overlay').style.display = 'none';
+  document.getElementById('organizer-form').reset();
+  document.querySelectorAll('.conditional').forEach(s => s.style.display = 'none');
+  window.scrollTo(0, 0);
+  alert('Your session has timed out for security. All entered data has been cleared.');
+}
+
+// ── Screening question handler ──
+function handleScreening(radio) {
+  const name = radio.name;
+  const val = radio.value;
+  const row = radio.closest('.yn-row');
+  const detail = row ? row.querySelector('.yn-detail') : null;
+  if (detail) {
+    detail.classList.toggle('visible', val === 'yes');
+  }
+  updateConditionalSections();
+  updateProgress();
+}
+
+// ── Dynamic table rows ──
+function addTableRow(tableId, template) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  const row = document.createElement('tr');
+  row.innerHTML = template;
+  tbody.appendChild(row);
+}
+
+function removeTableRow(btn) {
+  const row = btn.closest('tr');
+  if (row) row.remove();
+}
+
+// ── Collapsible sections ──
+function toggleCollapsible(header) {
+  header.parentElement.classList.toggle('collapsed');
+}
+
+// ── Progress tracking ──
+function updateProgress() {
+  const allRequired = document.querySelectorAll('[required]');
+  const filledRequired = Array.from(allRequired).filter(el => {
+    if (el.type === 'radio') {
+      return document.querySelector(`input[name="${el.name}"]:checked`);
+    }
+    return el.value.trim() !== '';
+  });
+  const ynRows = document.querySelectorAll('.yn-row');
+  let ynAnswered = 0;
+  const ynNames = new Set();
+  ynRows.forEach(row => {
+    const radios = row.querySelectorAll('input[type="radio"]');
+    if (radios.length) {
+      const name = radios[0].name;
+      if (!ynNames.has(name)) {
+        ynNames.add(name);
+        if (document.querySelector(`input[name="${name}"]:checked`)) ynAnswered++;
+      }
+    }
+  });
+  const totalItems = allRequired.length + ynNames.size;
+  const filledItems = filledRequired.length + ynAnswered;
+  const pct = totalItems > 0 ? Math.round((filledItems / totalItems) * 100) : 0;
+  const fill = document.getElementById('progress-fill');
+  const text = document.getElementById('progress-text');
+  if (fill) fill.style.width = pct + '%';
+  if (text) text.textContent = pct + '% complete';
+}
+
+// ── Currency formatting with commas ──
+function formatCurrency(input) {
+  // Get cursor position relative to end (to restore after formatting)
+  const cursorFromEnd = input.value.length - (input.selectionStart || input.value.length);
+  // Strip everything except digits and decimal
+  let val = input.value.replace(/[^0-9.]/g, '');
+  if (val === '') { input.value = ''; return; }
+  // Handle multiple decimals
+  const parts = val.split('.');
+  if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+  // Limit to 2 decimal places
+  const finalParts = val.split('.');
+  if (finalParts[1] && finalParts[1].length > 2) {
+    finalParts[1] = finalParts[1].substring(0, 2);
+    val = finalParts[0] + '.' + finalParts[1];
+  }
+  // Add commas to integer part
+  const intPart = finalParts[0].replace(/^0+(?=\d)/, '');
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  input.value = finalParts.length > 1 ? withCommas + '.' + (finalParts[1] || '') : withCommas;
+  // Restore cursor position relative to end
+  const newPos = input.value.length - cursorFromEnd;
+  if (input === document.activeElement) {
+    input.setSelectionRange(Math.max(0, newPos), Math.max(0, newPos));
+  }
+}
+
+// Get raw numeric value (strip commas) for PDF generation
+function getRawCurrency(name) {
+  const el = document.querySelector(`[name="${name}"]`);
+  return el ? el.value.replace(/,/g, '') : '';
+}
+
+// ── SSN masking ──
+function maskSSN(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 9);
+  if (val.length > 5) val = val.substring(0,3) + '-' + val.substring(3,5) + '-' + val.substring(5);
+  else if (val.length > 3) val = val.substring(0,3) + '-' + val.substring(3);
+  input.value = val;
+}
+
+function maskEIN(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 9);
+  if (val.length > 2) val = val.substring(0,2) + '-' + val.substring(2);
+  input.value = val;
+}
+
+function maskPhone(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 10);
+  if (val.length > 6) val = val.substring(0,3) + '-' + val.substring(3,6) + '-' + val.substring(6);
+  else if (val.length > 3) val = val.substring(0,3) + '-' + val.substring(3);
+  input.value = val;
+}
+
+// ── Entity type change handler ──
+function handleEntityChange() {
+  const selected = document.querySelector('input[name="entity_type"]:checked');
+  if (!selected) return;
+
+  const entity = selected.value;
+
+  // Entity-specific labels map
+  const labels = {
+    scorp: { owner: 'Shareholder', owners: 'Shareholders', entity: 'S Corporation', entityLower: 'corporation' },
+    ccorp: { owner: 'Shareholder', owners: 'Shareholders', entity: 'C Corporation', entityLower: 'corporation' },
+    partnership: { owner: 'Partner', owners: 'Partners', entity: 'Partnership', entityLower: 'partnership' },
+    llc: { owner: 'Member', owners: 'Members', entity: 'LLC', entityLower: 'LLC' },
+  };
+
+  const lblMap = labels[entity];
+
+  // Show/hide entity-specific divs
+  document.querySelectorAll('[data-entity]').forEach(el => {
+    el.style.display = el.getAttribute('data-entity') === entity ? '' : 'none';
+  });
+
+  // Update entity labels throughout the form
+  document.querySelectorAll('.entity-label').forEach(el => {
+    if (el.classList.contains('entity-lower')) {
+      el.textContent = lblMap.entityLower;
+    } else {
+      const text = el.textContent.trim();
+      if (text === 'Shareholder') el.textContent = lblMap.owner;
+      else if (text === 'Shareholders') el.textContent = lblMap.owners;
+      else if (text === 'shareholders') el.textContent = lblMap.owners.toLowerCase();
+    }
+  });
+
+  // Rebuild ownership table header
+  rebuildOwnershipHeader(entity);
+
+  // Update add button text
+  const addBtn = document.querySelector('button[onclick="addOwnerRow()"]');
+  if (addBtn) {
+    addBtn.innerHTML = '+ Add ' + lblMap.owner;
+  }
+
+  updateProgress();
+}
+
+function rebuildOwnershipHeader(entity) {
+  const header = document.getElementById('owners-header');
+  if (!header) return;
+
+  // Show/hide columns based on entity
+  document.querySelectorAll('#owners-header th[class*="col-"]').forEach(th => {
+    const entityAttr = th.getAttribute('data-entity');
+    if (entityAttr) {
+      th.style.display = entityAttr === entity ? '' : 'none';
+    }
+  });
+
+  // Rebuild owner-transactions table header too
+  const transHeader = document.getElementById('owner-trans-header');
+  if (transHeader) {
+    document.querySelectorAll('#owner-trans-header th[class*="col-"]').forEach(th => {
+      const entityAttr = th.getAttribute('data-entity');
+      if (entityAttr) {
+        th.style.display = entityAttr === entity ? '' : 'none';
+      }
+    });
+  }
+}
+
+// ── Dynamic table row functions ──
+function addOwnerRow() {
+  const entity = document.querySelector('input[name="entity_type"]:checked').value;
+  const tbody = document.querySelector('#owners-table tbody');
+  const row = document.createElement('tr');
+
+  const fields = [];
+  fields.push(`<input type="text" placeholder="Name">`);
+  fields.push(`<input type="text" placeholder="SSN or EIN">`);
+  fields.push(`<input type="text" placeholder="Address">`);
+  fields.push(`<input type="text" placeholder="%">`);
+
+  if (entity === 'scorp') {
+    fields.push(`<input type="text" placeholder="$">`);
+  } else if (entity === 'ccorp') {
+    fields.push(`<input type="text" placeholder="#">`);
+    fields.push(`<input type="text" placeholder="#">`);
+    fields.push(`<input type="text" placeholder="$">`);
+  } else if (entity === 'partnership') {
+    fields.push(`<select><option>GP</option><option>LP</option></select>`);
+  } else if (entity === 'llc') {
+    fields.push(`<select><option>Member</option><option>Manager</option></select>`);
+  }
+
+  fields.push(`<select><option>Yes</option><option>No</option></select>`);
+  fields.push(`<button type="button" class="btn-remove" onclick="removeTableRow(this)">✕</button>`);
+
+  row.innerHTML = fields.map(f => `<td>${f}</td>`).join('');
+  tbody.appendChild(row);
+}
+
+function addTransactionRow() {
+  const entity = document.querySelector('input[name="entity_type"]:checked').value;
+  const tbody = document.querySelector('#owner-trans-table tbody');
+  const row = document.createElement('tr');
+
+  const fields = [];
+  fields.push(`<input type="text" placeholder="Name">`);
+
+  if (['scorp', 'ccorp'].includes(entity)) {
+    fields.push(`<input type="text" placeholder="$" class="currency-input">`);
+  } else if (['partnership', 'llc'].includes(entity)) {
+    fields.push(`<input type="text" placeholder="$" class="currency-input">`);
+  }
+
+  if (['scorp', 'partnership', 'llc'].includes(entity)) {
+    fields.push(`<input type="text" placeholder="$" class="currency-input">`);
+  }
+
+  fields.push(`<input type="text" placeholder="$" class="currency-input">`);
+  fields.push(`<input type="text" placeholder="$" class="currency-input">`);
+  fields.push(`<input type="text" placeholder="$" class="currency-input">`);
+  fields.push(`<input type="text" placeholder="$" class="currency-input">`);
+  fields.push(`<button type="button" class="btn-remove" onclick="removeTableRow(this)">✕</button>`);
+
+  row.innerHTML = fields.map(f => `<td>${f}</td>`).join('');
+  tbody.appendChild(row);
+}
+
+function addCarRow() {
+  const tbody = document.querySelector('#car-table tbody');
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text" placeholder="e.g., Toyota Camry"></td>
+    <td><input type="date"></td>
+    <td><select><option>Yes</option><option>No</option></select></td>
+    <td><input type="text" placeholder="miles"></td>
+    <td><input type="text" placeholder="miles"></td>
+    <td><input type="text" placeholder="$" class="currency-input"></td>
+    <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">✕</button></td>
+  `;
+  tbody.appendChild(row);
+}
+
+function addEquipmentRow() {
+  const tbody = document.querySelector('#equipment-table tbody');
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text" placeholder="Asset description"></td>
+    <td><input type="date"></td>
+    <td><input type="text" placeholder="$" class="currency-input"></td>
+    <td><input type="date"></td>
+    <td><select><option>New</option><option>Used</option></select></td>
+    <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">✕</button></td>
+  `;
+  tbody.appendChild(row);
+}
+
+function addEquipmentSoldRow() {
+  const tbody = document.querySelector('#equipment-sold-table tbody');
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text" placeholder="Asset description"></td>
+    <td><input type="date"></td>
+    <td><input type="date"></td>
+    <td><input type="text" placeholder="$" class="currency-input"></td>
+    <td><select><option>Yes</option><option>No</option></select></td>
+    <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">✕</button></td>
+  `;
+  tbody.appendChild(row);
+}
+
+function addStateEstRow() {
+  const tbody = document.querySelector('#state-est-table tbody');
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><select><option value="">Select</option>` + Array.from(document.querySelector('select[name="bus_state"]').options).map(o => `<option value="${o.value}">${o.text}</option>`).join('') + `</select></td>
+    <td><input type="text" placeholder="$" class="currency-input"></td>
+    <td><input type="date"></td>
+    <td><input type="text" placeholder="$" class="currency-input"></td>
+    <td><input type="date"></td>
+    <td><input type="text" placeholder="$" class="currency-input"></td>
+    <td><input type="date"></td>
+    <td><input type="text" placeholder="$" class="currency-input"></td>
+    <td><input type="date"></td>
+    <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">✕</button></td>
+  `;
+  tbody.appendChild(row);
+}
+
+// ── Conditional sections ──
+function updateConditionalSections() {
+  // For business entity, all conditional sections are entity-specific
+  // They're controlled by the entity selector, which calls handleEntityChange()
+}
+
+// ── PDF Generation ──
+function generatePDF() {
+  const form = document.getElementById('organizer-form');
+
+  // Validate required fields
+  const entityName = form.querySelector('[name="bus_legal_name"]').value.trim();
+  const ein = form.querySelector('[name="bus_ein"]').value.replace(/[^0-9]/g, '');
+  const entityType = form.querySelector('input[name="entity_type"]:checked');
+  const sigName = form.querySelector('[name="sig_name"]').value.trim();
+
+  if (!entityName) {
+    alert('Please enter the legal name of the entity');
+    return;
+  }
+  if (!ein || ein.length !== 9) {
+    alert('Please enter a valid EIN (9 digits)');
+    return;
+  }
+  if (!entityType) {
+    alert('Please select an entity type');
+    return;
+  }
+  if (!sigName) {
+    alert('Please enter a signature name');
+    return;
+  }
+
+    const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+
+  const pw = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  const cw = pw - 2 * margin;
+  let y = margin;
+
+  function checkPage(needed) {
+    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  }
+
+  function addHeader() {
+    doc.setFillColor(44, 95, 138);
+    doc.rect(0, 0, pw, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Hellman & Associates, LLC', margin, 10);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('TAX PREP TECH', margin, 17);
+    doc.setTextColor(0, 0, 0);
+    y = 30;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('2025 Business Entity Tax Organizer', pw / 2, y, { align: 'center' });
+    y += 10;
+  }
+
+  function addSectionTitle(title) {
+    checkPage(12);
+    doc.setFillColor(44, 95, 138);
+    doc.rect(margin, y, cw, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, margin + 3, y + 5);
+    doc.setTextColor(0, 0, 0);
+    y += 10;
+  }
+
+  function addFieldPair(label, value) {
+    checkPage(7);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label + ':', margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text(String(value || ''), margin + 50, y);
+    y += 6;
+  }
+
+  function addFieldRow(pairs) {
+    checkPage(7);
+    const colW = cw / pairs.length;
+    pairs.forEach((p, i) => {
+      const x = margin + i * colW;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(85, 85, 85);
+      doc.text(p[0] + ':', x, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.text(String(p[1] || ''), x + 35, y);
+    });
+    y += 6;
+  }
+
+  function getVal(name) {
+    const el = form.querySelector(`[name="${name}"]`);
+    return el ? el.value : '';
+  }
+
+  function getRadio(name) {
+    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    return checked ? checked.value : '';
+  }
+
+  addHeader();
+
+  // ─ General Information
+  addSectionTitle('Business Information');
+  addFieldPair('Legal Name', entityName);
+  addFieldPair('EIN', ein.substring(0, 2) + '-' + ein.substring(2));
+  addFieldPair('Business Address', getVal('bus_address') + ', ' + getVal('bus_city') + ', ' + getVal('bus_state') + ' ' + getVal('bus_zip'));
+  addFieldPair('Rep Name/Title', getVal('rep_name') + ' / ' + getVal('rep_title'));
+  addFieldPair('Principal Activity', getVal('bus_activity'));
+  addFieldPair('Business Started', getVal('bus_start_date'));
+
+  // ─ Income
+  if (getVal('inc_gross_receipts')) {
+    addSectionTitle('Income');
+    addFieldPair('Gross Receipts', '$' + getVal('inc_gross_receipts'));
+    addFieldPair('Interest Income', '$' + getVal('inc_interest'));
+    addFieldPair('Dividend Income', '$' + getVal('inc_dividend'));
+  }
+
+  // ─ Expenses
+  const expenseLabels = [
+    ['Advertising', 'exp_advertising'],
+    ['Compensation of Officers', 'exp_compensation_officers'],
+    ['Contract Labor', 'exp_contract_labor'],
+    ['Insurance', 'exp_insurance'],
+    ['Legal/Professional', 'exp_legal'],
+    ['Office Supplies', 'exp_office_supplies'],
+    ['Repairs', 'exp_repairs'],
+    ['Utilities', 'exp_utilities'],
+  ];
+
+  let hasExpenses = false;
+  const expenses = [];
+  expenseLabels.forEach(([lbl, nm]) => {
+    const val = getVal(nm);
+    if (val) {
+      hasExpenses = true;
+      expenses.push([lbl, '$' + val]);
+    }
+  });
+
+  if (hasExpenses) {
+    addSectionTitle('Key Expenses');
+    expenses.forEach(exp => addFieldPair(exp[0], exp[1]));
+  }
+
+  // ─ Balance Sheet
+  const bsAssets = [
+    ['Bank Balance', 'bs_bank_balance'],
+    ['Accounts Receivable', 'bs_ar_eoY'],
+    ['Inventory', 'bs_inventory'],
+  ];
+
+  let hasBS = false;
+  const assets = [];
+  bsAssets.forEach(([lbl, nm]) => {
+    const val = getVal(nm);
+    if (val) {
+      hasBS = true;
+      assets.push([lbl, '$' + val]);
+    }
+  });
+
+  if (hasBS) {
+    addSectionTitle('Balance Sheet Summary');
+    assets.forEach(a => addFieldPair(a[0], a[1]));
+  }
+
+  // ─ Signature
+  checkPage(18);
+  y += 10;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Signature Block', margin, y);
+  y += 10;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Authorized Representative: ' + sigName, margin, y);
+  y += 6;
+  doc.text('Title: ' + getVal('sig_title'), margin, y);
+  y += 6;
+  doc.text('Date: ' + getVal('sig_date'), margin, y);
+
+    // Footer on each page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Confidential - ' + new Date().toLocaleDateString() + ' - Page ' + i + ' of ' + pageCount,
+      pw / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+  }
+
+  const fileName = entityName.toUpperCase().replace(/[^A-Z0-9]/g, '_') + '_2025_' + entityType.value.toUpperCase() + '_Organizer.pdf';
+  doc.save(fileName);
+
+  // Show confirmation
+  document.getElementById('organizer-form').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+  const conf = document.getElementById('confirmation');
+  conf.style.display = 'block';
+  document.getElementById('conf-name').textContent = entityName;
+  document.getElementById('conf-ref').textContent = 'REF-' + Date.now().toString(36).toUpperCase();
+  document.getElementById('conf-date').textContent = new Date().toLocaleString();
+
+  // Clear form data after PDF generation
+  setTimeout(() => {
+    form.reset();
+    document.querySelectorAll('tbody').forEach(tb => tb.innerHTML = '');
+  }, 500);
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', function() {
+  resetTimeout();
+  document.addEventListener('keydown', resetTimeout);
+  document.addEventListener('click', resetTimeout);
+  document.addEventListener('input', resetTimeout);
+
+  // Currency formatting (live as user types)
+  document.querySelectorAll('.currency-input').forEach(input => {
+    input.addEventListener('input', function() { formatCurrency(this); });
+  });
+
+  // SSN masking
+  document.querySelectorAll('[data-mask="ssn"]').forEach(input => {
+    input.addEventListener('input', function() { maskSSN(this); });
+  });
+
+  // EIN masking
+  document.querySelectorAll('[data-mask="ein"]').forEach(input => {
+    input.addEventListener('input', function() { maskEIN(this); });
+  });
+
+  // Phone masking
+  document.querySelectorAll('[data-mask="phone"]').forEach(input => {
+    input.addEventListener('input', function() { maskPhone(this); });
+  });
+
+  // Progress tracking
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('change', updateProgress);
+    el.addEventListener('input', updateProgress);
+  });
+
+  
+  // Auto-fill signature date and show timestamp on signing
+  const today = new Date().toISOString().split('T')[0];
+  const sigDate = document.querySelector('[name="sig_date"]');
+  if (sigDate) sigDate.value = today;
+  const sigInput = document.querySelector('[name="sig_name"]');
+  if (sigInput) {
+    sigInput.addEventListener('input', function() {
+      const meta = document.getElementById('sig-meta');
+      if (meta && this.value.trim()) {
+        meta.textContent = 'Signed electronically on ' + new Date().toLocaleString() + ' | This electronic signature has the same legal effect as a handwritten signature.';
+      } else if (meta) {
+        meta.textContent = '';
+      }
+    });
+  }
+
+  updateProgress();
+});
+</script>
+</body>
+</html>

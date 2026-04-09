@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Tax Organizers - Tax Prep Tech</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root {
+  --accent: #2C5F8A;
+  --accent-light: #e8f0f7;
+  --bg: #f5f7fa;
+  --card-bg: #ffffff;
+  --text: #333;
+  --muted: #6b7280;
+  --border: #e0e0e0;
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background: var(--accent);
+  color: #fff;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.header .dba {
+  font-size: 13px;
+  opacity: 0.85;
+  font-style: italic;
+}
+
+.header .subtitle {
+  font-size: 16px;
+  margin-top: 16px;
+  font-weight: 400;
+  opacity: 0.95;
+}
+
+/* Container */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+/* Intro */
+.intro {
+  text-align: center;
+  margin-bottom: 32px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Card Grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(44, 95, 138, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.card .schedule-ref {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  flex-grow: 1;
+  margin-bottom: 16px;
+}
+
+.card-link {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.card-link:hover {
+  background: #1a4a6e;
+}
+
+/* Security Notice */
+.security-notice {
+  background: var(--accent-light);
+  border: 1px solid #c5d9ea;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 32px;
+}
+
+.security-notice h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.security-notice ul {
+  list-style: none;
+  padding: 0;
+}
+
+.security-notice li {
+  font-size: 13px;
+  color: var(--text);
+  padding: 4px 0;
+  padding-left: 20px;
+  position: relative;
+}
+
+.security-notice li::before {
+  content: "\2713";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  .header h1 { font-size: 18px; }
+  .header .subtitle { font-size: 14px; }
+}
+
+@media print {
+  .card-link { background: none; color: var(--accent); border: 1px solid var(--accent); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>HELLMAN &amp; ASSOCIATES, LLC</h1>
+  <div class="dba">d/b/a Tax Prep Tech</div>
+  <div class="subtitle">Digital Tax Organizers</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    Welcome to our secure digital tax organizer portal. Select the organizer that applies to your situation below.
+    Each form is completed in your browser and generates a PDF for you to upload to your Verifyle portal.
+    No data is stored on our servers.
+  </div>
+
+  <div class="card-grid">
+
+    <div class="card">
+      <div class="card-icon">&#128100;</div>
+      <div class="schedule-ref">Form 1040</div>
+      <h3>Individual Taxpayer</h3>
+      <p>For personal income tax returns. Covers wages, investments, deductions, dependents, and more. This is the most common organizer for individual filers.</p>
+      <a href="individual-organizer.html" class="card-link">Open Organizer</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">&#127970;</div>
+      <div class="schedule-ref">Forms 1120 / 1120S / 1065</div>
+      <h3>Business Entity</h3>
+      <p>For S Corporations, C Corporations, Partnerships, and LLCs. Covers entity-specific income, expenses, officer compensation, and compliance questions.</p>
+      <a href="business-entity-organizer.html" class="card-link">Open Organizer</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">&#128221;</div>
+      <div class="schedule-ref">Schedule C</div>
+      <h3>Self-Employed</h3>
+      <p>For sole proprietors and independent contractors. Covers business income, expenses, vehicle mileage, equipment purchases, and home office deduction.</p>
+      <a href="selfemployed-organizer.html" class="card-link">Open Organizer</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">&#127968;</div>
+      <div class="schedule-ref">Schedule E</div>
+      <h3>Rental Property</h3>
+      <p>For landlords with up to 3 rental properties. Covers rental income, property expenses, improvements, mileage, and material participation.</p>
+      <a href="rental-organizer.html" class="card-link">Open Organizer</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">&#9878;</div>
+      <div class="schedule-ref">Form 1041</div>
+      <h3>Fiduciary (Estate &amp; Trust)</h3>
+      <p>For estates and trusts. Covers fiduciary information, beneficiaries, income, deductions, and distributions. Includes Section 645 election.</p>
+      <a href="fiduciary-organizer.html" class="card-link">Open Organizer</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">&#127775;</div>
+      <div class="schedule-ref">Form 990</div>
+      <h3>Non-Profit &amp; Exempt Organization</h3>
+      <p>For 501(c) organizations. Covers officers/directors, program activities, income, expenses, balance sheet, and major contributors.</p>
+      <a href="nonprofit-organizer.html" class="card-link">Open Organizer</a>
+    </div>
+
+  </div>
+
+  <div class="security-notice">
+    <h4>Privacy &amp; Security</h4>
+    <ul>
+      <li>No data is stored on any server &mdash; everything stays on your device</li>
+      <li>Forms auto-clear after 30 minutes of inactivity</li>
+      <li>Generated PDFs are downloaded directly to your device</li>
+      <li>Upload completed organizers to your <strong>Verifyle portal</strong> for secure delivery</li>
+      <li>Do not email completed organizers &mdash; use your secure portal instead</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">
+  &copy; 2026 Hellman &amp; Associates, LLC &mdash; All rights reserved.<br>
+  Questions? Contact your tax preparer directly.
+</div>
+
+</body>
+</html>

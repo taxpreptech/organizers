@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025 Individual Taxpayer Organizer - Tax Prep Tech</title>
+<style>
+:root {
+  --accent: #2C5F8A;
+  --accent-light: #E8F0F7;
+  --body: #1A1A1A;
+  --muted: #555555;
+  --border: #CCCCCC;
+  --radius: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: var(--body); background: #f5f7fa; line-height: 1.5; }
+.form-container { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.firm-header { background: var(--accent); color: #fff; padding: 20px 28px; border-radius: var(--radius) var(--radius) 0 0; }
+.firm-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+.firm-header .firm-dba { font-size: 15px; font-weight: 400; opacity: 0.9; }
+.firm-header .firm-contact { font-size: 12px; margin-top: 8px; opacity: 0.8; }
+.form-title { background: #fff; border: 1px solid var(--border); border-top: none; padding: 18px 28px; text-align: center; }
+.form-title h2 { font-size: 20px; color: var(--accent); font-weight: 700; }
+.form-title .tax-year { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* Progress */
+.progress-bar { background: #fff; border: 1px solid var(--border); border-top: none; padding: 12px 28px; }
+.progress-track { background: #e9ecef; border-radius: 10px; height: 8px; overflow: hidden; }
+.progress-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 10px; }
+.progress-text { font-size: 12px; color: var(--muted); margin-top: 4px; text-align: right; }
+
+/* Sections */
+.form-section { background: #fff; border: 1px solid var(--border); border-top: none; }
+.form-section.conditional { border-left: 3px solid var(--accent); }
+.section-header { background: var(--accent-light); padding: 12px 28px; border-bottom: 1px solid var(--border); cursor: default; }
+.section-header h2 { font-size: 15px; font-weight: 700; color: var(--accent); }
+.section-body { padding: 20px 28px; }
+
+/* Fields */
+.field-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.field { flex: 1 1 100%; }
+.field-half { flex: 1 1 calc(50% - 6px); min-width: 200px; }
+.field-third { flex: 1 1 calc(33.33% - 8px); min-width: 160px; }
+.field-quarter { flex: 1 1 calc(25% - 9px); min-width: 130px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+.field input, .field select, .field textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; color: var(--body); background: #fff; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(44,95,138,0.15); }
+.field input[type="date"] { padding: 6px 10px; }
+
+/* Currency fields */
+.currency-wrap { position: relative; }
+.dollar-sign { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+.currency-input { padding-left: 22px !important; }
+
+/* Radio/checkbox groups */
+.radio-group { display: flex; gap: 16px; flex-wrap: wrap; padding: 4px 0; }
+.radio-group label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.checkbox-row label { font-size: 14px; cursor: pointer; }
+
+/* Yes/No screening questions */
+.yn-group-title { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.yn-group-title:first-child { margin-top: 0; }
+.yn-row { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.yn-buttons { display: flex; gap: 4px; flex-shrink: 0; padding-top: 1px; }
+.yn-btn { cursor: pointer; }
+.yn-btn input { display: none; }
+.yn-label { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); color: var(--muted); transition: all 0.15s; }
+.yn-btn input:checked + .yes-label { background: #28a745; color: #fff; border-color: #28a745; }
+.yn-btn input:checked + .no-label { background: #dc3545; color: #fff; border-color: #dc3545; }
+.yn-text { font-size: 14px; line-height: 1.4; padding-top: 2px; flex: 1; }
+.yn-detail { margin: 8px 0 8px 80px; padding: 12px; background: var(--accent-light); border-radius: 4px; display: none; }
+.yn-detail.visible { display: block; }
+
+/* Dynamic tables */
+.dynamic-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.dynamic-table th { background: var(--accent); color: #fff; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.dynamic-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+.dynamic-table input, .dynamic-table select { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 3px; font-size: 13px; }
+.btn-add { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.btn-add:hover { background: var(--accent); color: #fff; }
+.btn-remove { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 2px 6px; }
+
+/* Expense grid (two-column) — fixed widths prevent overlap */
+.expense-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+.expense-item { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
+.expense-item label { font-size: 12px; flex: 1 1 0%; min-width: 0; line-height: 1.3; overflow-wrap: break-word; }
+.expense-item .currency-wrap { width: 100px; min-width: 100px; max-width: 100px; flex: 0 0 100px; position: relative; }
+.expense-item .currency-input { width: 100%; font-size: 12px; padding: 5px 5px 5px 18px !important; box-sizing: border-box; }
+.expense-item .dollar-sign { font-size: 12px; left: 6px; }
+
+/* Collapsible help */
+.collapsible { margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 4px; }
+.collapsible-header { padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent); background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
+.collapsible-header:hover { background: var(--accent-light); }
+.collapse-icon { font-size: 10px; transition: transform 0.2s; }
+.collapsible.collapsed .collapsible-content { display: none; }
+.collapsible.collapsed .collapse-icon { transform: rotate(-90deg); }
+.collapsible-content { padding: 12px 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* Subsection divider */
+.subsection { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e8e8e8; }
+.subsection-title { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+
+/* Notes */
+.form-note { font-size: 12px; color: var(--muted); font-style: italic; margin: 6px 0; line-height: 1.4; }
+.form-note.important { color: #856404; background: #fff3cd; padding: 8px 12px; border-radius: 4px; font-style: normal; }
+
+/* Signature */
+.sig-block { margin: 16px 0; }
+.sig-line { border-bottom: 1px solid var(--body); margin-bottom: 4px; padding: 8px 0; }
+.sig-label { font-size: 12px; color: var(--muted); }
+.sig-input { border: none; border-bottom: 2px solid var(--accent); background: transparent; font-size: 16px; font-family: 'Georgia', serif; padding: 8px 4px; width: 100%; font-style: italic; }
+.sig-input:focus { outline: none; border-bottom-color: #1a4a6e; }
+.sig-meta { font-size: 11px; color: var(--muted); margin-top: 12px; }
+
+/* Buttons */
+.form-actions { text-align: center; padding: 24px 28px; background: #fff; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
+.btn-submit { padding: 14px 48px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; }
+.btn-submit:hover { background: #1a4a6e; }
+.btn-submit:disabled { background: #999; cursor: not-allowed; }
+
+/* Confirmation */
+.confirmation { display: none; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; text-align: center; margin-top: 20px; }
+.confirmation h2 { color: #28a745; font-size: 24px; margin-bottom: 12px; }
+.confirmation .conf-detail { text-align: left; max-width: 600px; margin: 20px auto; background: var(--accent-light); padding: 20px; border-radius: var(--radius); font-size: 14px; line-height: 1.8; }
+
+/* Validation */
+.field.error input, .field.error select { border-color: #dc3545; background: #fff5f5; }
+.error-msg { font-size: 11px; color: #dc3545; margin-top: 2px; }
+
+/* Timeout warning */
+.timeout-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
+.timeout-modal { background: #fff; padding: 32px; border-radius: 8px; max-width: 420px; text-align: center; }
+.timeout-modal h3 { color: #dc3545; margin-bottom: 12px; }
+.timeout-modal button { margin: 8px; padding: 10px 24px; border-radius: 4px; font-size: 14px; cursor: pointer; }
+.btn-continue { background: var(--accent); color: #fff; border: none; }
+.btn-clear { background: #fff; color: #dc3545; border: 1px solid #dc3545; }
+
+/* Footer */
+.form-footer { text-align: center; padding: 16px; font-size: 11px; color: var(--muted); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .form-container { padding: 8px; }
+  .section-body { padding: 14px 16px; }
+  .field-half, .field-third, .field-quarter { flex: 1 1 100%; }
+  .expense-grid { grid-template-columns: 1fr; }
+  .yn-row { flex-direction: column; gap: 6px; }
+  .yn-detail { margin-left: 0; }
+}
+@media print {
+  body { background: #fff; }
+  .btn-add, .btn-remove, .btn-submit, .form-actions, .progress-bar { display: none; }
+  .form-section { break-inside: avoid; border: none; }
+  .section-header { background: none; padding: 8px 0; }
+  .collapsible-content { display: block !important; }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="form-container">
+
+<!-- Firm Header -->
+<div class="firm-header">
+  <h1>Hellman &amp; Associates, LLC</h1>
+  <div class="firm-dba">TAX PREP TECH</div>
+</div>
+
+<!-- Form Title -->
+<div class="form-title">
+  <h2>2025 Individual Taxpayer Organizer</h2>
+  <div class="tax-year">Tax Year 2025 &mdash; Please complete all applicable sections</div>
+</div>
+
+<!-- Progress Bar -->
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-text" id="progress-text">0% complete</div>
+</div>
+
+<form id="organizer-form" onsubmit="event.preventDefault(); generatePDF();" autocomplete="off">
+
+<section id="sec-personal" class="form-section"><div class="section-header"><h2>Taxpayer Information</h2></div><div class="section-body">
+<div class="field-row">
+  <div class="field field-half"><label>First Name</label><input type="text" name="tp_first_name" required></div>
+  <div class="field" style="flex:0 0 60px"><label>M.I.</label><input type="text" name="tp_mi" maxlength="1"></div>
+  <div class="field field-half"><label>Last Name</label><input type="text" name="tp_last_name" required></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Social Security Number</label><input type="text" name="tp_ssn" placeholder="XXX-XX-XXXX" required data-mask="ssn"></div>
+  <div class="field field-half"><label>Email</label><input type="email" name="tp_email"></div>
+</div>
+<div class="field-row">
+  <div class="field field-quarter"><label>IP PIN (5 digits)</label><input type="text" name="tp_ip_pin" maxlength="5" inputmode="numeric"></div>
+  <div class="field field-half"><label>Occupation</label><input type="text" name="tp_occupation"></div>
+  <div class="field field-quarter"><label>Date of Birth</label><input type="date" name="tp_dob"></div>
+</div>
+<div class="field-row">
+  <div class="field" style="flex:0 0 200px"><label>Are you new to our firm?</label>
+    <div class="radio-group"><label><input type="radio" name="tp_new_client" value="yes"> Yes</label><label><input type="radio" name="tp_new_client" value="no"> No</label></div>
+  </div>
+</div>
+<div class="subsection"><div class="subsection-title">Address</div></div>
+<div class="field-row">
+  <div class="field"><label>Street Address</label><input type="text" name="tp_address" required></div>
+</div>
+<div class="field-row">
+  <div class="field field-third"><label>City</label><input type="text" name="tp_city" required></div>
+  <div class="field field-quarter"><label>State</label><select name="tp_state" required><option value="">Select</option><option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option><option value="DC">DC</option><option value="PR">PR</option><option value="VI">VI</option><option value="GU">GU</option><option value="AS">AS</option><option value="MP">MP</option></select></div>
+  <div class="field field-quarter"><label>Zip Code</label><input type="text" name="tp_zip" required maxlength="10"></div>
+  <div class="field field-third"><label>County</label><input type="text" name="tp_county"></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Primary Phone</label><input type="text" name="tp_phone1" placeholder="XXX-XXX-XXXX" data-mask="phone"></div>
+  <div class="field field-half"><label>Secondary Phone</label><input type="text" name="tp_phone2" placeholder="XXX-XXX-XXXX" data-mask="phone"></div>
+</div>
+<div class="subsection"><div class="subsection-title">Driver's License</div></div>
+<div class="field-row">
+  <div class="field field-third"><label>License Number</label><input type="text" name="tp_dl_no"></div>
+  <div class="field field-quarter"><label>State</label><select name="tp_dl_state"><option value="">Select</option><option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option><option value="DC">DC</option><option value="PR">PR</option><option value="VI">VI</option><option value="GU">GU</option><option value="AS">AS</option><option value="MP">MP</option></select></div>
+  <div class="field field-quarter"><label>Issue Date</label><input type="date" name="tp_dl_issue"></div>
+  <div class="field field-quarter"><label>Expiration Date</label><input type="date" name="tp_dl_exp"></div>
+</div>
+<p class="form-note">* A Tax ID # is a Social Security Number (SSN), adoption taxpayer identification number (ATIN), or an individual taxpayer identification number (ITIN).</p>
+</div></section>
+<section id="sec-marital" class="form-section"><div class="section-header"><h2>Marital Status &amp; Family</h2></div><div class="section-body">
+<div class="subsection-title">Marital status on 12/31/2025:</div>
+<div class="radio-group" style="margin-bottom:12px">
+  <label><input type="radio" name="marital_status" value="single" required> Single</label>
+  <label><input type="radio" name="marital_status" value="married"> Married</label>
+  <label><input type="radio" name="marital_status" value="separated"> Separated</label>
+  <label><input type="radio" name="marital_status" value="surviving_spouse"> Surviving Spouse</label>
+  <label><input type="radio" name="marital_status" value="rdp"> Registered Domestic Partnership</label>
+</div>
+<p class="form-note">Note: Individuals in registered domestic partnerships (RDPs) and civil unions are not considered married for federal tax purposes.</p>
+<div class="field-row" style="margin-top:12px">
+  <div class="field field-half"><label>Divorced or separated during the year?</label>
+    <div class="radio-group"><label><input type="radio" name="divorced" value="yes"> Yes</label><label><input type="radio" name="divorced" value="no"> No</label></div>
+  </div>
+  <div class="field field-half"><label>Were there any deaths in the family?</label>
+    <div class="radio-group"><label><input type="radio" name="deaths" value="yes"> Yes</label><label><input type="radio" name="deaths" value="no"> No</label></div>
+  </div>
+</div>
+<div class="subsection"><div class="subsection-title">If you moved during 2025:</div></div>
+<div class="field-row">
+  <div class="field field-half"><label>Previous Address</label><input type="text" name="prev_address"></div>
+  <div class="field field-quarter"><label>Date of Move</label><input type="date" name="move_date"></div>
+</div>
+</div></section>
+<section id="sec-spouse" class="form-section  conditional" style="display:none"><div class="section-header"><h2>Spouse Information</h2></div><div class="section-body">
+<div class="field-row">
+  <div class="field field-half"><label>First Name</label><input type="text" name="sp_first_name"></div>
+  <div class="field" style="flex:0 0 60px"><label>M.I.</label><input type="text" name="sp_mi" maxlength="1"></div>
+  <div class="field field-half"><label>Last Name</label><input type="text" name="sp_last_name"></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Social Security Number</label><input type="text" name="sp_ssn" placeholder="XXX-XX-XXXX" data-mask="ssn"></div>
+  <div class="field field-half"><label>Email</label><input type="email" name="sp_email"></div>
+</div>
+<div class="field-row">
+  <div class="field field-quarter"><label>IP PIN (5 digits)</label><input type="text" name="sp_ip_pin" maxlength="5" inputmode="numeric"></div>
+  <div class="field field-half"><label>Occupation</label><input type="text" name="sp_occupation"></div>
+  <div class="field field-quarter"><label>Date of Birth</label><input type="date" name="sp_dob"></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>New to our firm?</label>
+    <div class="radio-group"><label><input type="radio" name="sp_new_client" value="yes"> Yes</label><label><input type="radio" name="sp_new_client" value="no"> No</label></div>
+  </div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Primary Phone</label><input type="text" name="sp_phone1" placeholder="XXX-XXX-XXXX" data-mask="phone"></div>
+  <div class="field field-half"><label>Secondary Phone</label><input type="text" name="sp_phone2" placeholder="XXX-XXX-XXXX" data-mask="phone"></div>
+</div>
+<div class="checkbox-row"><label><input type="checkbox" id="sp_diff_addr" onchange="document.getElementById('sp-addr-block').style.display=this.checked?'block':'none'"> Spouse has a different address</label></div>
+<div id="sp-addr-block" style="display:none">
+  <div class="field-row"><div class="field"><label>Street Address</label><input type="text" name="sp_address"></div></div>
+  <div class="field-row">
+    <div class="field field-third"><label>City</label><input type="text" name="sp_city"></div>
+    <div class="field field-quarter"><label>State</label><select name="sp_state"><option value="">Select</option><option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option><option value="DC">DC</option><option value="PR">PR</option><option value="VI">VI</option><option value="GU">GU</option><option value="AS">AS</option><option value="MP">MP</option></select></div>
+    <div class="field field-quarter"><label>Zip</label><input type="text" name="sp_zip" maxlength="10"></div>
+  </div>
+</div>
+<div class="subsection"><div class="subsection-title">Driver's License</div></div>
+<div class="field-row">
+  <div class="field field-third"><label>License Number</label><input type="text" name="sp_dl_no"></div>
+  <div class="field field-quarter"><label>State</label><select name="sp_dl_state"><option value="">Select</option><option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option><option value="DC">DC</option><option value="PR">PR</option><option value="VI">VI</option><option value="GU">GU</option><option value="AS">AS</option><option value="MP">MP</option></select></div>
+  <div class="field field-quarter"><label>Issue Date</label><input type="date" name="sp_dl_issue"></div>
+  <div class="field field-quarter"><label>Expiration Date</label><input type="date" name="sp_dl_exp"></div>
+</div>
+</div></section>
+<section id="sec-dependents" class="form-section"><div class="section-header"><h2>Dependent Children</h2></div><div class="section-body">
+<table class="dynamic-table" id="dep-table">
+  <thead><tr><th>Child's Full Name</th><th>Tax ID</th><th>IP PIN</th><th>Date of Birth</th><th>Months in Home</th><th>Relationship</th><th>College?</th><th></th></tr></thead>
+  <tbody>
+    <tr>
+      <td><input type="text" name="dep_name_0"></td>
+      <td><input type="text" name="dep_ssn_0" data-mask="ssn" placeholder="XXX-XX-XXXX" oninput="maskSSN(this)"></td>
+      <td><input type="text" name="dep_pin_0" maxlength="5" style="width:60px"></td>
+      <td><input type="date" name="dep_dob_0"></td>
+      <td><input type="number" name="dep_months_0" min="0" max="12" style="width:50px"></td>
+      <td><input type="text" name="dep_rel_0" placeholder="Son, Daughter..."></td>
+      <td><select name="dep_college_0"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select></td>
+      <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&times;</button></td>
+    </tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addDepRow()">+ Add Child</button>
+<script>
+let depCount = 1;
+function addDepRow() {
+  const i = depCount++;
+  addTableRow('dep-table',
+    '<td><input type=\"text\" name=\"dep_name_'+i+'\"></td>' +
+    '<td><input type=\"text\" name=\"dep_ssn_'+i+'\" data-mask=\"ssn\" placeholder=\"XXX-XX-XXXX\" oninput=\"maskSSN(this)\"></td>' +
+    '<td><input type=\"text\" name=\"dep_pin_'+i+'\" maxlength=\"5\" style=\"width:60px\"></td>' +
+    '<td><input type=\"date\" name=\"dep_dob_'+i+'\"></td>' +
+    '<td><input type=\"number\" name=\"dep_months_'+i+'\" min=\"0\" max=\"12\" style=\"width:50px\"></td>' +
+    '<td><input type=\"text\" name=\"dep_rel_'+i+'\" placeholder=\"Son, Daughter...\"></td>' +
+    '<td><select name=\"dep_college_'+i+'\"><option value=\"\">-</option><option value=\"yes\">Yes</option><option value=\"no\">No</option></select></td>' +
+    '<td><button type=\"button\" class=\"btn-remove\" onclick=\"removeTableRow(this)\">&times;</button></td>'
+  );
+}
+</script>
+<div class="field-row" style="margin-top:14px">
+  <div class="field field-half"><label>Did any children have unearned income of $1,350 or more?</label>
+    <div class="radio-group"><label><input type="radio" name="dep_unearned" value="yes"> Yes</label><label><input type="radio" name="dep_unearned" value="no"> No</label></div>
+  </div>
+  <div class="field field-half"><label>Do any children have a disability?</label>
+    <div class="radio-group"><label><input type="radio" name="dep_disability" value="yes"> Yes</label><label><input type="radio" name="dep_disability" value="no"> No</label></div>
+  </div>
+</div>
+<div class="field-row">
+  <div class="field"><label>Will a different taxpayer seek to claim a child listed above for tax year 2025?</label>
+    <div class="radio-group"><label><input type="radio" name="dep_other_claim" value="yes"> Yes</label><label><input type="radio" name="dep_other_claim" value="no"> No</label></div>
+  </div>
+</div>
+</div></section>
+<section id="sec-other-dep" class="form-section"><div class="section-header"><h2>Other Dependents or People Who Lived With You</h2></div><div class="section-body">
+<table class="dynamic-table" id="other-dep-table">
+  <thead><tr><th>Name</th><th>Tax ID</th><th>IP PIN</th><th>Date of Birth</th><th>Months in Home</th><th>Relationship</th><th>Income</th><th></th></tr></thead>
+  <tbody>
+    <tr>
+      <td><input type="text" name="od_name_0"></td>
+      <td><input type="text" name="od_ssn_0" data-mask="ssn" placeholder="XXX-XX-XXXX" oninput="maskSSN(this)"></td>
+      <td><input type="text" name="od_pin_0" maxlength="5" style="width:60px"></td>
+      <td><input type="date" name="od_dob_0"></td>
+      <td><input type="number" name="od_months_0" min="0" max="12" style="width:50px"></td>
+      <td><input type="text" name="od_rel_0"></td>
+      <td><input type="text" name="od_income_0" class="currency-input" style="width:90px"></td>
+      <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&times;</button></td>
+    </tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addOtherDepRow()">+ Add Person</button>
+<script>
+let odCount = 1;
+function addOtherDepRow() {
+  const i = odCount++;
+  addTableRow('other-dep-table',
+    '<td><input type=\"text\" name=\"od_name_'+i+'\"></td>' +
+    '<td><input type=\"text\" name=\"od_ssn_'+i+'\" data-mask=\"ssn\" oninput=\"maskSSN(this)\"></td>' +
+    '<td><input type=\"text\" name=\"od_pin_'+i+'\" maxlength=\"5\" style=\"width:60px\"></td>' +
+    '<td><input type=\"date\" name=\"od_dob_'+i+'\"></td>' +
+    '<td><input type=\"number\" name=\"od_months_'+i+'\" min=\"0\" max=\"12\" style=\"width:50px\"></td>' +
+    '<td><input type=\"text\" name=\"od_rel_'+i+'\"></td>' +
+    '<td><input type=\"text\" name=\"od_income_'+i+'\" class=\"currency-input\" style=\"width:90px\"></td>' +
+    '<td><button type=\"button\" class=\"btn-remove\" onclick=\"removeTableRow(this)\">&times;</button></td>'
+  );
+}
+</script>
+</div></section>
+<section id="sec-bank" class="form-section"><div class="section-header"><h2>Bank Information</h2></div><div class="section-body">
+<div class="field-row">
+  <div class="field"><label>Use for:</label>
+    <div class="radio-group">
+      <label><input type="checkbox" name="bank_deposit"> Direct deposit of refund</label>
+      <label><input type="checkbox" name="bank_debit"> Direct debit of balance due</label>
+    </div>
+  </div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Name of Bank</label><input type="text" name="bank_name"></div>
+  <div class="field field-half"><label>Account Type</label>
+    <div class="radio-group"><label><input type="radio" name="bank_type" value="checking"> Checking</label><label><input type="radio" name="bank_type" value="savings"> Savings</label></div>
+  </div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Routing Transit Number</label><input type="text" name="bank_routing" maxlength="9"></div>
+  <div class="field field-half"><label>Account Number</label><input type="text" name="bank_account"></div>
+</div>
+<p class="form-note">Ask your tax preparer for information about depositing a refund into an IRA account or splitting the deposit into more than one account.</p>
+</div></section>
+<section id="sec-screening" class="form-section"><div class="section-header"><h2>Screening Questions &mdash; All Taxpayers</h2></div><div class="section-body">
+<p class="form-note important">Please answer Yes or No to each question below. Answering Yes will open additional detail sections where applicable. Provide related statements or other documentation as noted.</p>
+
+<div class="yn-group-title">Lifestyle &amp; Taxes</div>
+<div class="yn-row" data-trigger="q_blind">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_blind" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_blind" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Are either you or your spouse legally blind?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_irs_notice">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_irs_notice" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_irs_notice" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Have you received any notice from the IRS or state revenue department within the past year? If yes, provide a copy.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_alimony">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_alimony" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_alimony" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you pay or receive alimony in 2025?</div>
+  <div class="yn-detail"><div class="field-row">
+      <div class="field field-third"><label>Paid</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="alimony_paid" class="currency-input"></div></div>
+      <div class="field field-third"><label>Received</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="alimony_received" class="currency-input"></div></div>
+      <div class="field field-third"><label>Recipient's SSN</label><input type="text" name="alimony_ssn" data-mask="ssn" oninput="maskSSN(this)"></div>
+    </div><div class="field-row">
+      <div class="field field-half"><label>Date of divorce or separation</label><input type="date" name="alimony_date"></div>
+    </div></div>
+</div>
+<div class="yn-row" data-trigger="q_marketplace">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_marketplace" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_marketplace" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you purchase health insurance through a public exchange/marketplace? (Provide Form 1095-A)</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_income_changes">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_income_changes" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_income_changes" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Will there be any significant changes in income or deductions next year, such as retirement?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_domestic_services">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_domestic_services" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_domestic_services" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you pay anyone for domestic services (e.g., nanny, housekeeper, cook, caretaker) in your home?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ev_vehicle">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ev_vehicle" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ev_vehicle" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you purchase an energy-efficient, hybrid, or electric vehicle?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_bankruptcy">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_bankruptcy" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_bankruptcy" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Are you involved in bankruptcy, foreclosure, repossession, or had any debt (including credit cards) cancelled?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_military">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_military" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_military" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Are you a member of the military?</div>
+  <div class="yn-detail"><div class="field-row"><div class="field"><label>State of residency</label><select name="military_state"><option value="">Select</option><option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option><option value="DC">DC</option><option value="PR">PR</option><option value="VI">VI</option><option value="GU">GU</option><option value="AS">AS</option><option value="MP">MP</option></select></div></div></div>
+</div>
+<div class="yn-row" data-trigger="q_foreign_citizen">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_foreign_citizen" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_foreign_citizen" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Were you a citizen of or did you live in a foreign country?</div>
+  <div class="yn-detail"><div class="field-row"><div class="field"><label>Foreign country</label><input type="text" name="foreign_country"></div></div></div>
+</div>
+<div class="yn-row" data-trigger="q_foreign_account">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_foreign_account" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_foreign_account" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Do you own or have financial interest in a foreign bank or financial account?</div>
+  <div class="yn-detail"><div class="field-row"><div class="field currency-field"><label>Maximum value in 2025</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="foreign_max_value" class="currency-input" inputmode="decimal"></div></div></div></div>
+</div>
+<div class="yn-row" data-trigger="q_third_party">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_third_party" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_third_party" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Would you like to allow your tax preparer or another person to discuss your return with the IRS?</div>
+  <div class="yn-detail"><div class="field-row"><div class="field field-third"><label>Designee's name</label><input type="text" name="designee_name"></div><div class="field field-third"><label>Phone number</label><input type="text" name="designee_phone" data-mask="phone"></div><div class="field field-third"><label>PIN (any five digits)</label><input type="text" name="designee_pin" maxlength="5"></div></div></div>
+</div>
+
+<div class="yn-group-title">Children &amp; Education</div>
+<div class="yn-row" data-trigger="q_child_born">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_child_born" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_child_born" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Were any children born or adopted in 2025? (Provide statement for other expenses)</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_college">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_college" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_college" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Were any children attending college? (Provide Form 1098-T and Form 1098-E)</div>
+  <div class="yn-detail">
+      <div class="field-row"><div class="field field-quarter"><label>Year in college</label><input type="text" name="college_year"></div></div>
+      <div class="subsection-title" style="font-size:13px">Paid by you:</div>
+      <div class="field-row"><div class="field currency-field field-half"><label>Tuition</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="college_tuition_parent" class="currency-input" inputmode="decimal"></div></div><div class="field currency-field field-half"><label>Books</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="college_books_parent" class="currency-input" inputmode="decimal"></div></div></div>
+      <div class="field-row"><div class="field currency-field field-half"><label>Student loan interest</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="college_loan_parent" class="currency-input" inputmode="decimal"></div></div></div>
+      <div class="subsection-title" style="font-size:13px">Paid by student:</div>
+      <div class="field-row"><div class="field currency-field field-half"><label>Tuition</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="college_tuition_student" class="currency-input" inputmode="decimal"></div></div><div class="field currency-field field-half"><label>Books</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="college_books_student" class="currency-input" inputmode="decimal"></div></div></div>
+      <div class="field-row"><div class="field currency-field field-half"><label>Student loan interest</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="college_loan_student" class="currency-input" inputmode="decimal"></div></div></div>
+    </div>
+</div>
+<div class="yn-row" data-trigger="q_childcare">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_childcare" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_childcare" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you pay for child or dependent care so you could work or go to school? (Provide statement if applicable)</div>
+  <div class="yn-detail"><div class="field-row"><div class="field field-half"><label>Name of provider</label><input type="text" name="care_provider"></div><div class="field field-half"><label>EIN or SSN</label><input type="text" name="care_ein"></div></div>
+    <div class="field-row"><div class="field field-half"><label>Address</label><input type="text" name="care_address"></div><div class="field currency-field field-half"><label>Amount paid</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="care_amount" class="currency-input" inputmode="decimal"></div></div></div></div>
+</div>
+
+<div class="yn-group-title">Investments</div>
+<div class="yn-row" data-trigger="q_529">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_529" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_529" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you contribute to or take money from a 529 plan in 2025? If yes, provide details.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_ira_contrib">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_ira_contrib" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_ira_contrib" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you, or will you, contribute any money to an IRA for 2025?</div>
+  <div class="yn-detail"><div class="radio-group"><label><input type="radio" name="ira_type" value="traditional"> Traditional IRA</label><label><input type="radio" name="ira_type" value="roth"> Roth IRA</label></div></div>
+</div>
+<div class="yn-row" data-trigger="q_rollover">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_rollover" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_rollover" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you roll over any amounts from a retirement account in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_sold_stock">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_sold_stock" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_sold_stock" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you sell or transfer any stock or sell rental or investment property?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_installment_sale">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_installment_sale" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_installment_sale" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you receive any income from an installment sale?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_worthless">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_worthless" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_worthless" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you have any investments become worthless or were you a victim of investment theft in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_stock_options">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_stock_options" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_stock_options" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Were you granted, or did you exercise, any employee stock options during 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_digital_assets">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_digital_assets" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_digital_assets" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you (a) receive (as a reward, award, or payment for property or services); or (b) sell, exchange, or otherwise dispose of a digital asset (or a financial interest in a digital asset)? (Digital assets include cryptocurrencies, NFTs, and stablecoins)</div>
+  
+</div>
+
+<div class="yn-group-title">Deductions &amp; Credits</div>
+<div class="yn-row" data-trigger="q_hsa">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_hsa" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_hsa" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you, or do you plan to, contribute money by April 15, 2026 to an HSA for 2025? If yes, provide details.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_boat_rv">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_boat_rv" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_boat_rv" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you pay any interest on a loan for a boat or RV that has living quarters? If yes, provide details.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_sales_tax">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_sales_tax" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_sales_tax" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you pay sales taxes on a major purchase in 2025, such as a vehicle, boat, or home?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_charitable">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_charitable" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_charitable" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you make any charitable contributions in 2025? If yes, provide details.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_vehicle_interest">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_vehicle_interest" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_vehicle_interest" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you pay interest on a loan for a new vehicle purchased after 2024? If yes, provide details.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_tip_income">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_tip_income" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_tip_income" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you receive tip income? If yes, provide details.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_overtime">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_overtime" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_overtime" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you receive overtime pay? If yes, provide earnings records and/or paystubs.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_educator">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_educator" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_educator" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Are you an educator? (Classroom expenses up to $300 each for teachers, counselors, and principals)</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_student_loan">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_student_loan" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_student_loan" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you pay student loan interest?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_self_emp_retire">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_self_emp_retire" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_self_emp_retire" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you make self-employed retirement plan contributions (SEP, SIMPLE, qualified plans)?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_estimated_payments">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_estimated_payments" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_estimated_payments" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you make estimated tax payments for 2025?</div>
+  
+</div>
+
+<div class="yn-group-title">Business &amp; Self-Employment</div>
+<div class="yn-row" data-trigger="q_home_office_car">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_home_office_car" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_home_office_car" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you work from a home office or use your car for your business?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_gig_economy">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_gig_economy" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_gig_economy" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you receive income from a sharing/gig economy activity (e.g., Airbnb, Uber, etc.)?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_self_employed">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_self_employed" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_self_employed" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Do you own a business or are you self-employed (sole proprietor)?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_business_entity">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_business_entity" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_business_entity" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Do you own an interest in a partnership, corporation, LLC, farming activities, or other venture?</div>
+  
+</div>
+
+<div class="yn-group-title">Home</div>
+<div class="yn-row" data-trigger="q_home_sale">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_home_sale" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_home_sale" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you purchase or sell a main home during the year? If yes, provide closing statement.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_refinance">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_refinance" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_refinance" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you refinance a mortgage or take a home equity loan? If yes, provide closing statement.</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_mortgage_other">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_mortgage_other" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_mortgage_other" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you use any mortgage loan proceeds for purposes other than to buy, build, or substantially improve your home?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_energy_improve">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_energy_improve" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_energy_improve" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you make any new energy-efficient improvements to your home? If yes, provide details.</div>
+  
+</div>
+
+<div class="yn-group-title">Rental Property</div>
+<div class="yn-row" data-trigger="q_rental_property">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_rental_property" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_rental_property" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Do you own rental property?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_medical">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_medical" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_medical" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you have significant medical or dental expenses not reimbursed by insurance in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_itemize_choice">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_itemize_choice" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_itemize_choice" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Do you wish to itemize deductions? (Required if deductions exceed the standard deduction)</div>
+  
+</div>
+
+<div class="yn-group-title">Income</div>
+<div class="yn-row" data-trigger="q_w2_income">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_w2_income" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_w2_income" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you (or your spouse) receive W-2 wage income in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_1099_income">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_1099_income" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_1099_income" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you receive 1099-INT, 1099-DIV, or 1099-R income in 2025?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_social_security">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_social_security" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_social_security" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you (or your spouse) receive Social Security benefits?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_gambling">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_gambling" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_gambling" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you receive gambling income (provide Form W-2G)?</div>
+  
+</div>
+<div class="yn-row" data-trigger="q_other_income">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_other_income" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_other_income" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you receive any other income not listed above (state tax refund, unemployment, etc.)?</div>
+  
+</div>
+
+</div></section>
+<section id="sec-income" class="form-section  conditional" style="display:none" data-triggered-by="income"><div class="section-header"><h2>Income Worksheet</h2></div><div class="section-body">
+<p class="form-note">Provide to your preparer all Forms W-2, 1099-INT, 1099-DIV, 1099-R, 1099-MISC, 1099-NEC, 1099-K, and other income reporting statements. Do not list dollar amounts for forms; your preparer will report the appropriate amounts. Indicate "T" for taxpayer, "S" for spouse, "J" for joint.</p>
+
+<div class="subsection"><div class="subsection-title">Forms W-2 &mdash; Wage and Tax Statement</div></div>
+<table class="dynamic-table" id="w2-table">
+  <thead><tr><th style="width:60px">T/S</th><th>Employer Name</th><th></th></tr></thead>
+  <tbody>
+    <tr><td><select name="w2_ts_0"><option value="T">T</option><option value="S">S</option></select></td><td><input type="text" name="w2_employer_0"></td><td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&times;</button></td></tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addW2Row()">+ Add W-2</button>
+<script>
+let w2Count=1;
+function addW2Row(){const i=w2Count++;addTableRow('w2-table','<td><select name=\"w2_ts_'+i+'\"><option value=\"T\">T</option><option value=\"S\">S</option></select></td><td><input type=\"text\" name=\"w2_employer_'+i+'\"></td><td><button type=\"button\" class=\"btn-remove\" onclick=\"removeTableRow(this)\">&times;</button></td>');}
+</script>
+
+<div class="subsection"><div class="subsection-title">Forms 1099-INT &mdash; Interest Income</div></div>
+<table class="dynamic-table" id="int-table">
+  <thead><tr><th style="width:60px">T/S/J</th><th>Name of Issuer</th><th></th></tr></thead>
+  <tbody>
+    <tr><td><select name="int_ts_0"><option value="T">T</option><option value="S">S</option><option value="J">J</option></select></td><td><input type="text" name="int_issuer_0"></td><td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&times;</button></td></tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addIntRow()">+ Add 1099-INT</button>
+<script>
+let intCount=1;
+function addIntRow(){const i=intCount++;addTableRow('int-table','<td><select name=\"int_ts_'+i+'\"><option value=\"T\">T</option><option value=\"S\">S</option><option value=\"J\">J</option></select></td><td><input type=\"text\" name=\"int_issuer_'+i+'\"></td><td><button type=\"button\" class=\"btn-remove\" onclick=\"removeTableRow(this)\">&times;</button></td>');}
+</script>
+
+<div class="subsection"><div class="subsection-title">Forms 1099-DIV &mdash; Dividends and Distributions</div></div>
+<table class="dynamic-table" id="div-table">
+  <thead><tr><th style="width:60px">T/S/J</th><th>Name of Issuer</th><th></th></tr></thead>
+  <tbody>
+    <tr><td><select name="div_ts_0"><option value="T">T</option><option value="S">S</option><option value="J">J</option></select></td><td><input type="text" name="div_issuer_0"></td><td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&times;</button></td></tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addDivRow()">+ Add 1099-DIV</button>
+<script>
+let divCount=1;
+function addDivRow(){const i=divCount++;addTableRow('div-table','<td><select name=\"div_ts_'+i+'\"><option value=\"T\">T</option><option value=\"S\">S</option><option value=\"J\">J</option></select></td><td><input type=\"text\" name=\"div_issuer_'+i+'\"></td><td><button type=\"button\" class=\"btn-remove\" onclick=\"removeTableRow(this)\">&times;</button></td>');}
+</script>
+
+<div class="subsection"><div class="subsection-title">Forms 1099-R &mdash; Pensions, Annuities, Retirement Distributions, IRAs</div></div>
+<table class="dynamic-table" id="r-table">
+  <thead><tr><th style="width:60px">T/S</th><th>Name of Issuer</th><th></th></tr></thead>
+  <tbody>
+    <tr><td><select name="r_ts_0"><option value="T">T</option><option value="S">S</option></select></td><td><input type="text" name="r_issuer_0"></td><td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&times;</button></td></tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addRRow()">+ Add 1099-R</button>
+<script>
+let rCount=1;
+function addRRow(){const i=rCount++;addTableRow('r-table','<td><select name=\"r_ts_'+i+'\"><option value=\"T\">T</option><option value=\"S\">S</option></select></td><td><input type=\"text\" name=\"r_issuer_'+i+'\"></td><td><button type=\"button\" class=\"btn-remove\" onclick=\"removeTableRow(this)\">&times;</button></td>');}
+</script>
+<p class="form-note">If the distribution is before age 59-1/2, give a reason to determine if an exception to penalty applies.</p>
+
+<div class="subsection"><div class="subsection-title">Tax-Exempt Interest (such as municipal bonds)</div></div>
+<div class="field-row"><div class="field field-half"><label>Payer</label><input type="text" name="exempt_payer_0"></div><div class="field currency-field field-half"><label>Amount</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exempt_amt_0" class="currency-input" inputmode="decimal"></div></div></div>
+<div class="field-row"><div class="field field-half"><label>Payer</label><input type="text" name="exempt_payer_1"></div><div class="field currency-field field-half"><label>Amount</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exempt_amt_1" class="currency-input" inputmode="decimal"></div></div></div>
+
+<div class="subsection"><div class="subsection-title">Other Income</div></div>
+<div class="expense-grid">
+  <div class="expense-item"><label>State tax refund</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="oi_state_refund" class="currency-input"></div></div>
+  <div class="expense-item"><label>Unreported tips</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="oi_tips" class="currency-input"></div></div>
+  <div class="expense-item"><label>Unemployment compensation</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="oi_unemployment" class="currency-input"></div></div>
+  <div class="expense-item"><label>Other</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="oi_other" class="currency-input"></div></div>
+  <div class="expense-item"><label>Social Security (taxpayer)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="oi_ss_tp" class="currency-input"></div></div>
+  <div class="expense-item"><label>Gambling income</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="oi_gambling" class="currency-input"></div></div>
+  <div class="expense-item"><label>Social Security (spouse)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="oi_ss_sp" class="currency-input"></div></div>
+</div>
+<p class="form-note">Provide SSA-1099 or RRB-1099 for Social Security benefits.</p>
+</div></section>
+<section id="sec-sales" class="form-section  conditional" style="display:none" data-triggered-by="sales"><div class="section-header"><h2>Sales and Exchanges Worksheet</h2></div><div class="section-body">
+<p class="form-note">Provide information about sales of stock or other property, along with Forms 1099-B, 1099-DA, 1099-S, or other supporting statements.</p>
+<table class="dynamic-table" id="sales-table">
+  <thead><tr><th>Description of Property</th><th>Purchase Date</th><th>Cost/Basis</th><th>Sale Date</th><th>Sale Price</th><th></th></tr></thead>
+  <tbody>
+    <tr>
+      <td><input type="text" name="sale_desc_0"></td>
+      <td><input type="date" name="sale_pdate_0"></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sale_basis_0" class="currency-input"></div></td>
+      <td><input type="date" name="sale_sdate_0"></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sale_price_0" class="currency-input"></div></td>
+      <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&times;</button></td>
+    </tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addSaleRow()">+ Add Sale</button>
+<script>
+let saleCount=1;
+function addSaleRow(){const i=saleCount++;addTableRow('sales-table','<td><input type=\"text\" name=\"sale_desc_'+i+'\"></td><td><input type=\"date\" name=\"sale_pdate_'+i+'\"></td><td><div class=\"currency-wrap\"><span class=\"dollar-sign\">$</span><input type=\"text\" name=\"sale_basis_'+i+'\" class=\"currency-input\"></div></td><td><input type=\"date\" name=\"sale_sdate_'+i+'\"></td><td><div class=\"currency-wrap\"><span class=\"dollar-sign\">$</span><input type=\"text\" name=\"sale_price_'+i+'\" class=\"currency-input\"></div></td><td><button type=\"button\" class=\"btn-remove\" onclick=\"removeTableRow(this)\">&times;</button></td>');}
+</script>
+<div class="collapsible collapsed">
+  <div class="collapsible-header" onclick="toggleCollapsible(this)">Notes about stock sales and cost basis<span class="collapse-icon">&#9660;</span></div>
+  <div class="collapsible-content">
+<p>When stock is sold, you will usually receive Form 1099-B reporting the proceeds from the sale. However, your statement may not always provide the cost/basis information necessary to compute gain or loss. If the statement does not contain the cost/basis information, you must provide it.</p>
+<p style="margin-top:6px">Often, "transfers" of stock within a brokerage account are actually sales of one type of stock and purchase of another. Even if you did not receive any cash from the transaction, you may have taxable gain or loss.</p>
+<p style="margin-top:6px">If your stock dividends are automatically reinvested, the dividends will be taxable even though you did not receive any cash. When the stock is sold, the amount reinvested over the years is taken into account.</p>
+<p style="margin-top:6px">If you sold property other than stock, your taxable gain or loss will be determined by your cost/basis. The cost/basis is usually the original purchase price plus improvements (the cost of repairs and maintenance are not taken into account for cost/basis).</p>
+</div>
+</div>
+</div></section>
+<section id="sec-deductions" class="form-section  conditional" style="display:none" data-triggered-by="deductions"><div class="section-header"><h2>Itemized Deductions Worksheet</h2></div><div class="section-body">
+<p class="form-note important">Deductions must exceed $15,750 Single/MFS, $31,500 MFJ/QSS, or $23,625 HOH to be a tax benefit.</p>
+
+<div class="subsection"><div class="subsection-title">Medical Expenses</div>
+<p class="form-note">Must exceed 7.5% of income to be a benefit. Include cost for dependents. Do not include any expenses that were reimbursed by insurance or paid with funds from an FSA, HSA, or HRA.</p></div>
+<div class="expense-grid">
+  <div class="expense-item"><label>Dentists</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_dentists" class="currency-input"></div></div>
+  <div class="expense-item"><label>Hospitals</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_hospitals" class="currency-input"></div></div>
+  <div class="expense-item"><label>Doctors</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_doctors" class="currency-input"></div></div>
+  <div class="expense-item"><label>Insurance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_insurance" class="currency-input"></div></div>
+  <div class="expense-item"><label>Equipment</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_equipment" class="currency-input"></div></div>
+  <div class="expense-item"><label>Prescriptions</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_prescriptions" class="currency-input"></div></div>
+  <div class="expense-item"><label>Eyeglasses</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_eyeglasses" class="currency-input"></div></div>
+  <div class="expense-item"><label>Other</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="med_other" class="currency-input"></div></div>
+</div>
+<div class="field-row" style="margin-top:8px">
+  <div class="field field-half"><label>Medical miles</label><div style="display:flex;align-items:center;gap:8px"><input type="number" name="med_miles" style="width:100px"> <span style="color:#555;font-size:13px">@ 21&cent;</span></div></div>
+</div>
+
+<div class="subsection"><div class="subsection-title">Charitable Contributions</div>
+<p class="form-note">If over $500 in noncash charitable contributions, provide details of contributions. Rules require that the taxpayer retain documentation for all contributions.</p></div>
+<div class="expense-grid">
+  <div class="expense-item"><label>Monetary (cash, check, credit card)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="char_monetary" class="currency-input"></div></div>
+  <div class="expense-item"><label>Noncash contributions (FMV)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="char_noncash" class="currency-input"></div></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Did you transfer funds from an IRA directly to a charity?</label>
+    <div class="radio-group"><label><input type="radio" name="char_ira" value="yes"> Yes</label><label><input type="radio" name="char_ira" value="no"> No</label></div>
+  </div>
+  <div class="field currency-field field-half"><label>Amount</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="char_ira_amt" class="currency-input" inputmode="decimal"></div></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Charitable mileage</label><div style="display:flex;align-items:center;gap:8px"><input type="number" name="char_miles" style="width:100px"> <span style="color:#555;font-size:13px">@ 14&cent;</span></div></div>
+</div>
+
+<div class="subsection"><div class="subsection-title">Taxes Paid</div>
+<p class="form-note">Do not include taxes paid for full or partial business-use or rental-use property, including business use of the home.</p></div>
+<div class="expense-grid">
+  <div class="expense-item"><label>State estimated taxes paid in 2025</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_state_est" class="currency-input"></div></div>
+  <div class="expense-item"><label>Real estate tax - residence</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_re_res" class="currency-input"></div></div>
+  <div class="expense-item"><label>Real estate tax - other</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_re_other" class="currency-input"></div></div>
+  <div class="expense-item"><label>Personal property taxes</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_personal_prop" class="currency-input"></div></div>
+  <div class="expense-item"><label>Property tax refund received in 2025</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_prop_refund" class="currency-input"></div></div>
+  <div class="expense-item"><label>Foreign tax paid (except real estate)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_foreign" class="currency-input"></div></div>
+  <div class="expense-item"><label>Other</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_other1" class="currency-input"></div></div>
+  <div class="expense-item"><label>Balance paid from prior year returns</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="tax_prior_balance" class="currency-input"></div></div>
+</div>
+<p class="form-note">State withholding is reported on W-2 and will be entered from that form.</p>
+
+<div class="subsection"><div class="subsection-title">Casualty and Theft Losses</div></div>
+<div class="field-row">
+  <div class="field"><label>Did you suffer any sudden, unexpected damage or loss of property, or a theft in a federally-declared disaster area? If yes, provide details.</label>
+    <div class="radio-group"><label><input type="radio" name="casualty" value="yes"> Yes</label><label><input type="radio" name="casualty" value="no"> No</label></div>
+  </div>
+</div>
+
+<div class="subsection"><div class="subsection-title">Other Deductions</div></div>
+<div class="expense-grid">
+  <div class="expense-item"><label>Gambling losses</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ded_gambling" class="currency-input"></div></div>
+  <div class="expense-item"><label>Federal estate tax on IRD</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ded_estate_tax" class="currency-input"></div></div>
+  <div class="expense-item"><label>Impairment-related expenses</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ded_impairment" class="currency-input"></div></div>
+  <div class="expense-item"><label>Repayments over $3,000</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ded_repayments" class="currency-input"></div></div>
+</div>
+
+<div class="subsection"><div class="subsection-title">Interest Paid</div>
+<p class="form-note">Do not include interest paid for full or partial business-use or rental-use property. Provide all Forms 1098 or lender information and ID numbers.</p></div>
+<div class="expense-grid">
+  <div class="expense-item"><label>Main home</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="int_main" class="currency-input"></div></div>
+  <div class="expense-item"><label>Equity loan</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="int_equity1" class="currency-input"></div></div>
+  <div class="expense-item"><label>Second home</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="int_second" class="currency-input"></div></div>
+  <div class="expense-item"><label>Equity loan</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="int_equity2" class="currency-input"></div></div>
+  <div class="expense-item"><label>Points</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="int_points" class="currency-input"></div></div>
+  <div class="expense-item"><label>Investment interest</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="int_investment" class="currency-input"></div></div>
+</div>
+</div></section>
+<section id="sec-adjustments" class="form-section  conditional" style="display:none" data-triggered-by="adjustments"><div class="section-header"><h2>Adjustments to Income</h2></div><div class="section-body">
+<div class="expense-grid" style="gap:12px 24px">
+  <div class="expense-item"><label>Educator expenses (up to $300 each)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_educator" class="currency-input"></div></div>
+  <div class="expense-item"><label>HSA contributions (through 4/15/2026)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_hsa" class="currency-input"></div></div>
+  <div class="expense-item"><label>Self-employed SEP, SIMPLE, qualified plans (through 4/15/2026)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_sep" class="currency-input"></div></div>
+  <div class="expense-item"><label>Self-employed health insurance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_se_health" class="currency-input"></div></div>
+  <div class="expense-item"><label>Penalty on early withdrawal of savings</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_penalty" class="currency-input"></div></div>
+  <div class="expense-item"><label>IRA deduction (Traditional only, through 4/15/2026)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_ira" class="currency-input"></div></div>
+  <div class="expense-item"><label>Student loan interest</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_student_loan" class="currency-input"></div></div>
+  <div class="expense-item"><label>Other adjustments</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="adj_other" class="currency-input"></div></div>
+</div>
+<div class="field-row" style="margin-top:8px"><div class="field"><label>Other adjustments description</label><input type="text" name="adj_other_desc"></div></div>
+<p class="form-note">Roth IRAs are not deductible. Moving expenses are available only to members of the Armed Forces on active duty moving pursuant to a military order.</p>
+</div></section>
+<section id="sec-schedule-c" class="form-section  conditional" style="display:none" data-triggered-by="schedule-c"><div class="section-header"><h2>Schedule C &mdash; Self-Employment / Sole Proprietorship</h2></div><div class="section-body">
+<div class="subsection"><div class="subsection-title">General Information</div></div>
+<div class="field-row">
+  <div class="field"><label>Name of sole proprietor</label><input type="text" name="sc_name"></div>
+</div>
+<div class="field-row">
+  <div class="field field-half"><label>Business name (if different)</label><input type="text" name="sc_biz_name"></div>
+  <div class="field field-half"><label>EIN (if applicable)</label><input type="text" name="sc_ein" data-mask="ein"></div>
+</div>
+<div class="field-row"><div class="field"><label>Business address (if different from home)</label><input type="text" name="sc_address"></div></div>
+<div class="field-row">
+  <div class="field field-third"><label>Principal business activity</label><input type="text" name="sc_activity"></div>
+  <div class="field field-third"><label>Principal product or service</label><input type="text" name="sc_product"></div>
+  <div class="field field-third"><label>Date business started</label><input type="date" name="sc_start_date"></div>
+</div>
+<div class="field-row">
+  <div class="field field-third"><label>Primary purpose to realize a profit?</label>
+    <div class="radio-group"><label><input type="radio" name="sc_profit" value="yes"> Yes</label><label><input type="radio" name="sc_profit" value="no"> No</label></div></div>
+  <div class="field field-third"><label>Did you materially participate?</label>
+    <div class="radio-group"><label><input type="radio" name="sc_material" value="yes"> Yes</label><label><input type="radio" name="sc_material" value="no"> No</label></div></div>
+  <div class="field field-third"><label>Reported losses in prior years?</label>
+    <div class="radio-group"><label><input type="radio" name="sc_prior_loss" value="yes"> Yes</label><label><input type="radio" name="sc_prior_loss" value="no"> No</label></div></div>
+</div>
+<div class="field-row">
+  <div class="field field-third"><label>Accounting method</label>
+    <div class="radio-group"><label><input type="radio" name="sc_acct" value="cash"> Cash</label><label><input type="radio" name="sc_acct" value="accrual"> Accrual</label><label><input type="radio" name="sc_acct" value="other"> Other</label></div></div>
+  <div class="field field-third"><label>Calendar year?</label>
+    <div class="radio-group"><label><input type="radio" name="sc_cal_year" value="yes"> Yes</label><label><input type="radio" name="sc_cal_year" value="no"> No</label></div></div>
+</div>
+
+<div class="subsection"><div class="subsection-title">Business Income</div></div>
+<div class="field-row">
+  <div class="field currency-field field-half"><label>Gross receipts or sales</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_gross" class="currency-input" inputmode="decimal"></div></div>
+</div>
+<div class="field-row">
+  <div class="field currency-field field-half"><label>Form 1099-NEC</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_1099nec" class="currency-input" inputmode="decimal"></div></div>
+  <div class="field currency-field field-half"><label>Form 1099-K</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_1099k" class="currency-input" inputmode="decimal"></div></div>
+</div>
+<div class="field-row">
+  <div class="field currency-field field-half"><label>Returns and allowances</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_returns" class="currency-input" inputmode="decimal"></div></div>
+  <div class="field currency-field field-half"><label>Other income</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_other_income" class="currency-input" inputmode="decimal"></div></div>
+</div>
+
+<div class="subsection"><div class="subsection-title">Business Expenses</div></div>
+<div class="expense-grid">
+  <div class="expense-item"><label>Advertising</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_advertising" class="currency-input"></div></div>
+  <div class="expense-item"><label>Management fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_mgmt_fees" class="currency-input"></div></div>
+  <div class="expense-item"><label>Bad debts</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_bad_debts" class="currency-input"></div></div>
+  <div class="expense-item"><label>Meals - business</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_meals" class="currency-input"></div></div>
+  <div class="expense-item"><label>Bank charges</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_bank_charges" class="currency-input"></div></div>
+  <div class="expense-item"><label>Office supplies</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_office" class="currency-input"></div></div>
+  <div class="expense-item"><label>Business licenses</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_licenses" class="currency-input"></div></div>
+  <div class="expense-item"><label>Start-up costs</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_startup" class="currency-input"></div></div>
+  <div class="expense-item"><label>Commissions and fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_commissions" class="currency-input"></div></div>
+  <div class="expense-item"><label>Pension/profit-sharing plans</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_pension" class="currency-input"></div></div>
+  <div class="expense-item"><label>Contract labor</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_contract" class="currency-input"></div></div>
+  <div class="expense-item"><label>Rent - car/machinery/equip</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_rent_equip" class="currency-input"></div></div>
+  <div class="expense-item"><label>Employee benefit programs</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_emp_benefits" class="currency-input"></div></div>
+  <div class="expense-item"><label>Rent - other business property</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_rent_other" class="currency-input"></div></div>
+  <div class="expense-item"><label>Employee health care plans</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_emp_health" class="currency-input"></div></div>
+  <div class="expense-item"><label>Repairs and maintenance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_repairs" class="currency-input"></div></div>
+  <div class="expense-item"><label>Insurance (not health)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_insurance" class="currency-input"></div></div>
+  <div class="expense-item"><label>Supplies (not in inventory)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_supplies" class="currency-input"></div></div>
+  <div class="expense-item"><label>Interest - mortgage</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_int_mortgage" class="currency-input"></div></div>
+  <div class="expense-item"><label>Taxes - payroll</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_tax_payroll" class="currency-input"></div></div>
+  <div class="expense-item"><label>Interest - other</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_int_other" class="currency-input"></div></div>
+  <div class="expense-item"><label>Taxes - property</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_tax_property" class="currency-input"></div></div>
+  <div class="expense-item"><label>Internet service</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_internet" class="currency-input"></div></div>
+  <div class="expense-item"><label>Telephone</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_telephone" class="currency-input"></div></div>
+  <div class="expense-item"><label>Legal and professional</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_legal" class="currency-input"></div></div>
+  <div class="expense-item"><label>Utilities</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_utilities" class="currency-input"></div></div>
+  <div class="expense-item"><label>Wages</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_wages" class="currency-input"></div></div>
+  <div class="expense-item"><label>Other expense</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="sc_other_exp" class="currency-input"></div></div>
+</div>
+
+<div class="subsection"><div class="subsection-title">Vehicle Expenses</div></div>
+<div class="field-row">
+  <div class="field field-half"><label>Make/Model</label><input type="text" name="sc_car_make"></div>
+  <div class="field field-half"><label>Date car placed in service</label><input type="date" name="sc_car_date"></div>
+</div>
+<div class="field-row">
+  <div class="field field-third"><label>Available for personal use off-duty?</label>
+    <div class="radio-group"><label><input type="radio" name="sc_car_personal" value="yes"> Yes</label><label><input type="radio" name="sc_car_personal" value="no"> No</label></div></div>
+  <div class="field field-third"><label>Do you have evidence?</label>
+    <div class="radio-group"><label><input type="radio" name="sc_car_evidence" value="yes"> Yes</label><label><input type="radio" name="sc_car_evidence" value="no"> No</label></div></div>
+  <div class="field field-third"><label>Is your evidence written?</label>
+    <div class="radio-group"><label><input type="radio" name="sc_car_written" value="yes"> Yes</label><label><input type="radio" name="sc_car_written" value="no"> No</label></div></div>
+</div>
+<div class="subsection-title" style="font-size:13px;margin-top:12px">Mileage</div>
+<div class="expense-grid">
+  <div class="expense-item"><label>Beginning of year odometer</label><input type="number" name="sc_odom_begin" style="width:120px"></div>
+  <div class="expense-item"><label>End of year odometer</label><input type="number" name="sc_odom_end" style="width:120px"></div>
+  <div class="expense-item"><label>Business mileage</label><input type="number" name="sc_miles_biz" style="width:120px"></div>
+  <div class="expense-item"><label>Commuting mileage</label><input type="number" name="sc_miles_commute" style="width:120px"></div>
+</div>
+</div></section>
+<section id="sec-schedule-e" class="form-section  conditional" style="display:none" data-triggered-by="schedule-e"><div class="section-header"><h2>Schedule E &mdash; Rental Property</h2></div><div class="section-body">
+<p class="form-note">Complete one section per rental property. Use "Add Property" for additional properties.</p>
+
+<div id="rental-properties">
+  <div class="rental-property" data-index="0">
+    <div class="subsection"><div class="subsection-title">Property 1</div></div>
+    <div class="field-row"><div class="field"><label>Property address</label><input type="text" name="re0_address"></div></div>
+    <div class="field-row">
+      <div class="field field-third"><label>Type of property</label><select name="re0_type"><option value="">Select</option><option>Single Family</option><option>Multi-Family</option><option>Vacation/Short-term</option><option>Commercial</option><option>Land</option><option>Other</option></select></div>
+      <div class="field field-third"><label>Date acquired</label><input type="date" name="re0_acquired"></div>
+      <div class="field field-third"><label>% Ownership</label><input type="text" name="re0_ownership" placeholder="100"></div>
+    </div>
+    <div class="field-row">
+      <div class="field field-third"><label>Fair rental days</label><input type="text" name="re0_rental_days" placeholder="365"></div>
+      <div class="field field-third"><label>Personal use days</label><input type="text" name="re0_personal_days" placeholder="0"></div>
+    </div>
+    <div class="subsection-title" style="font-size:13px">Rental Income</div>
+    <div class="field-row">
+      <div class="field currency-field field-half"><label>Gross rents received</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_gross_rent" class="currency-input" inputmode="decimal"></div></div>
+      <div class="field currency-field field-half"><label>Other rental income</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_other_income" class="currency-input" inputmode="decimal"></div></div>
+    </div>
+    <div class="subsection-title" style="font-size:13px">Rental Expenses</div>
+    <div class="expense-grid">
+      <div class="expense-item"><label>Advertising</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_advertising" class="currency-input"></div></div>
+      <div class="expense-item"><label>Mortgage interest</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_mortgage" class="currency-input"></div></div>
+      <div class="expense-item"><label>Auto and travel</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_auto" class="currency-input"></div></div>
+      <div class="expense-item"><label>Other interest</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_other_int" class="currency-input"></div></div>
+      <div class="expense-item"><label>Cleaning and maintenance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_cleaning" class="currency-input"></div></div>
+      <div class="expense-item"><label>Repairs</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_repairs" class="currency-input"></div></div>
+      <div class="expense-item"><label>Commissions</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_commissions" class="currency-input"></div></div>
+      <div class="expense-item"><label>Supplies</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_supplies" class="currency-input"></div></div>
+      <div class="expense-item"><label>Insurance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_insurance" class="currency-input"></div></div>
+      <div class="expense-item"><label>Taxes</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_taxes" class="currency-input"></div></div>
+      <div class="expense-item"><label>Legal and professional</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_legal" class="currency-input"></div></div>
+      <div class="expense-item"><label>Utilities</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_utilities" class="currency-input"></div></div>
+      <div class="expense-item"><label>Management fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_mgmt" class="currency-input"></div></div>
+      <div class="expense-item"><label>HOA fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_hoa" class="currency-input"></div></div>
+      <div class="expense-item"><label>Pest control</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_pest" class="currency-input"></div></div>
+      <div class="expense-item"><label>Landscaping</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_landscape" class="currency-input"></div></div>
+      <div class="expense-item"><label>Depreciation</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_depreciation" class="currency-input"></div></div>
+      <div class="expense-item"><label>Other</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re0_other_exp" class="currency-input"></div></div>
+    </div>
+  </div>
+</div>
+<button type="button" class="btn-add" onclick="addRentalProperty()">+ Add Property</button>
+<script>
+let rentalCount = 1;
+function addRentalProperty() {
+  const i = rentalCount++;
+  const container = document.getElementById('rental-properties');
+  const div = document.createElement('div');
+  div.className = 'rental-property';
+  div.dataset.index = i;
+  div.innerHTML = '<div class="subsection"><div class="subsection-title">Property '+(i+1)+' <button type="button" class="btn-remove" onclick="this.closest(\'.rental-property\').remove()" style="float:right">&times; Remove</button></div></div>' +
+    '<div class="field-row"><div class="field"><label>Property address</label><input type="text" name="re'+i+'_address"></div></div>' +
+    '<div class="subsection-title" style="font-size:13px">Rental Income</div>' +
+    '<div class="field-row"><div class="field field-half currency-field"><label>Gross rents received</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_gross_rent" class="currency-input"></div></div></div>' +
+    '<div class="subsection-title" style="font-size:13px">Rental Expenses</div>' +
+    '<div class="expense-grid">' +
+    '<div class="expense-item"><label>Mortgage interest</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_mortgage" class="currency-input"></div></div>' +
+    '<div class="expense-item"><label>Insurance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_insurance" class="currency-input"></div></div>' +
+    '<div class="expense-item"><label>Taxes</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_taxes" class="currency-input"></div></div>' +
+    '<div class="expense-item"><label>Repairs</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_repairs" class="currency-input"></div></div>' +
+    '<div class="expense-item"><label>Utilities</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_utilities" class="currency-input"></div></div>' +
+    '<div class="expense-item"><label>Management fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_mgmt" class="currency-input"></div></div>' +
+    '<div class="expense-item"><label>HOA fees</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_hoa" class="currency-input"></div></div>' +
+    '<div class="expense-item"><label>Other</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="re'+i+'_other_exp" class="currency-input"></div></div>' +
+    '</div>';
+  container.appendChild(div);
+}
+</script>
+</div></section>
+<section id="sec-estimated" class="form-section  conditional" style="display:none" data-triggered-by="estimated"><div class="section-header"><h2>Estimated Tax Payments &mdash; Tax Year 2025</h2></div><div class="section-body">
+<table class="dynamic-table">
+  <thead><tr><th>Installment</th><th>Date Paid</th><th>Federal</th><th>Date Paid</th><th>State</th></tr></thead>
+  <tbody>
+    <tr><td>First</td><td><input type="date" name="est_1_fed_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_1_fed" class="currency-input"></div></td><td><input type="date" name="est_1_st_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_1_state" class="currency-input"></div></td></tr>
+    <tr><td>Second</td><td><input type="date" name="est_2_fed_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_2_fed" class="currency-input"></div></td><td><input type="date" name="est_2_st_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_2_state" class="currency-input"></div></td></tr>
+    <tr><td>Third</td><td><input type="date" name="est_3_fed_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_3_fed" class="currency-input"></div></td><td><input type="date" name="est_3_st_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_3_state" class="currency-input"></div></td></tr>
+    <tr><td>Fourth</td><td><input type="date" name="est_4_fed_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_4_fed" class="currency-input"></div></td><td><input type="date" name="est_4_st_date"></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_4_state" class="currency-input"></div></td></tr>
+    <tr style="border-top:2px solid #ccc"><td>Amount from 2024 overpayment</td><td></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_prior_fed" class="currency-input"></div></td><td></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="est_prior_state" class="currency-input"></div></td></tr>
+  </tbody>
+</table>
+</div></section>
+<section id="sec-state" class="form-section"><div class="section-header"><h2>State Information</h2></div><div class="section-body">
+<div class="field-row">
+  <div class="field field-half"><label>Residency Status</label>
+    <div class="radio-group">
+      <label><input type="radio" name="residency_status" value="full_year"> Full-year resident</label>
+      <label><input type="radio" name="residency_status" value="part_year"> Part-year resident</label>
+      <label><input type="radio" name="residency_status" value="nonresident"> Nonresident</label>
+    </div>
+  </div>
+  <div class="field field-half"><label>School District</label><input type="text" name="school_district"></div>
+</div>
+<div class="field-row">
+  <div class="field"><label>States of residence during 2025 and dates</label><input type="text" name="states_of_residence"></div>
+</div>
+<div class="field-row">
+  <div class="field field-third"><label>Do you rent or own your home?</label>
+    <div class="radio-group"><label><input type="radio" name="rent_own" value="rent"> Rent</label><label><input type="radio" name="rent_own" value="own"> Own</label></div>
+  </div>
+  <div class="field currency-field field-half"><label>Total rent paid</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="total_rent" class="currency-input" inputmode="decimal"></div></div>
+  <div class="field field-quarter"><label>Includes heat?</label>
+    <div class="radio-group"><label><input type="radio" name="includes_heat" value="yes"> Yes</label><label><input type="radio" name="includes_heat" value="no"> No</label></div>
+  </div>
+</div>
+</div></section>
+<section id="sec-responsibilities" class="form-section"><div class="section-header"><h2>Taxpayer Responsibilities</h2></div><div class="section-body">
+<p style="font-size:14px;line-height:1.7;margin-bottom:12px">By signing below, you acknowledge that you have read, understand, and accept your obligations and responsibilities. For a joint return, both taxpayers must sign.</p>
+<ul style="font-size:13px;line-height:1.8;color:#333;padding-left:20px;margin-bottom:16px">
+  <li>You agree to provide us all income and deductible expense information. If you receive additional information after we begin working on your return, you will contact us immediately to ensure your completed tax returns contain all relevant information.</li>
+  <li>You affirm that all expenses or other deduction amounts are accurate and that you have all required supporting written records. In some cases, we will ask to review your documentation.</li>
+  <li>You must be able to provide written records of all items included on your return if audited by either the IRS or state tax authority. We can provide guidance concerning what evidence is acceptable.</li>
+  <li>You must review the returns carefully before signing to make sure the information is correct.</li>
+  <li>Fees must be paid before your tax returns are delivered to you or filed for you. If you terminate this engagement before completion, you agree to pay a fee for work completed. A retainer may be required for preparation of returns.</li>
+  <li>You should keep a copy of your tax return and any related tax documents. You may be assessed a fee if you request a duplicate copy in the future.</li>
+</ul>
+
+<div class="subsection"><div class="subsection-title">Electronic Signature</div></div>
+<div class="field-row">
+  <div class="field field-half">
+    <label>Taxpayer &mdash; Type your full legal name to sign</label>
+    <input type="text" name="tp_signature" class="sig-input" placeholder="Full Legal Name" required>
+  </div>
+  <div class="field field-quarter"><label>Date</label><input type="date" name="tp_sig_date" value="" readonly></div>
+</div>
+<div class="field-row" id="spouse-sig-row" style="display:none">
+  <div class="field field-half">
+    <label>Spouse &mdash; Type your full legal name to sign</label>
+    <input type="text" name="sp_signature" class="sig-input" placeholder="Full Legal Name">
+  </div>
+  <div class="field field-quarter"><label>Date</label><input type="date" name="sp_sig_date" value="" readonly></div>
+</div>
+<p class="sig-meta" id="sig-meta"></p>
+<script>
+// Auto-fill dates and show spouse sig when applicable
+document.addEventListener('DOMContentLoaded', function() {
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelector('[name="tp_sig_date"]').value = today;
+  document.querySelector('[name="sp_sig_date"]').value = today;
+  // Show IP/timestamp when signing
+  document.querySelector('[name="tp_signature"]').addEventListener('input', function() {
+    if (this.value.trim()) {
+      document.getElementById('sig-meta').textContent = 'Signed electronically on ' + new Date().toLocaleString() + ' | This electronic signature has the same legal effect as a handwritten signature.';
+    }
+  });
+  // Show spouse signature when married
+  const observer = new MutationObserver(function() {
+    const spouseSection = document.getElementById('sec-spouse');
+    document.getElementById('spouse-sig-row').style.display = (spouseSection && spouseSection.style.display !== 'none') ? '' : 'none';
+  });
+  const spouseSection = document.getElementById('sec-spouse');
+  if (spouseSection) observer.observe(spouseSection, { attributes: true, attributeFilter: ['style'] });
+});
+</script>
+</div></section>
+<section id="sec-privacy" class="form-section">
+<div class="section-header" style="cursor:pointer" onclick="document.getElementById('privacy-body').style.display=document.getElementById('privacy-body').style.display==='none'?'block':'none'; this.querySelector('.collapse-icon').style.transform=document.getElementById('privacy-body').style.display==='none'?'rotate(-90deg)':'rotate(0)'">
+  <h2>Privacy Policy <span class="collapse-icon" style="font-size:10px;display:inline-block;transition:transform 0.2s;transform:rotate(-90deg)">&#9660;</span></h2>
+</div>
+<div id="privacy-body" class="section-body" style="display:none">
+  <p style="font-size:13px;line-height:1.7;color:#555">The nature of our work requires us to collect certain nonpublic information. We collect financial and personal information from applications, worksheets, reporting statements, and other forms, as well as interviews and conversations with our clients and affiliates. We may also review banking and credit card information about our clients in the performance of receipt of payment. Under our policy, all information we obtain about you will be provided by you or obtained with your permission.</p>
+  <p style="font-size:13px;line-height:1.7;color:#555;margin-top:10px">Our firm has procedures and policies in place to protect your confidential information. We restrict access to your confidential information to those within our firm who need to know in order to provide you with services. We will not disclose your personal information to a third party without your express written permission, except where required by law. We maintain physical, electronic, and procedural safeguards in compliance with federal regulations that protect your personal information from unauthorized access.</p>
+</div>
+</section>
+
+<!-- Submit -->
+<div class="form-actions">
+  <p style="font-size:13px;color:#555;margin-bottom:16px">When you click Generate &amp; Download, a PDF of your completed organizer will be created and downloaded to your device. This PDF is not password-protected. Please upload it to your Verifyle portal for secure delivery to your preparer. Do not email it or transmit it over unsecured channels.</p>
+  <button type="submit" class="btn-submit">Generate &amp; Download Organizer</button>
+</div>
+
+</form>
+
+<!-- Confirmation Screen -->
+<div id="confirmation" class="confirmation">
+  <h2>&#10003; Organizer Generated Successfully</h2>
+  <p style="font-size:16px;color:#333">Thank you, <strong id="conf-name"></strong>.</p>
+  <div class="conf-detail">
+    <p><strong>Reference:</strong> <span id="conf-ref"></span></p>
+    <p><strong>Generated:</strong> <span id="conf-date"></span></p>
+    <p style="margin-top:12px"><strong>Next Steps:</strong></p>
+    <p>1. The PDF has been downloaded to your device. <strong>This PDF is not password-protected.</strong> Please do not email it or transmit it over unsecured channels.</p>
+    <p>2. Upload the completed organizer PDF to your <strong>Verifyle portal</strong>. Verifyle provides end-to-end encryption to protect your sensitive information.</p>
+    <p>3. Upload your supporting documents (W-2s, 1099s, bank statements, etc.) to your <strong>Verifyle portal</strong> as well.</p>
+    <p>4. Your preparer will review the organizer and follow up with any additional questions.</p>
+  </div>
+</div>
+
+<!-- Timeout Warning -->
+<div id="timeout-overlay" class="timeout-overlay">
+  <div class="timeout-modal">
+    <h3>Session Timeout Warning</h3>
+    <p style="margin:12px 0">For your security, your session will expire due to inactivity. All entered data will be cleared.</p>
+    <button class="btn-continue" onclick="continueSession()">Continue Working</button>
+    <button class="btn-clear" onclick="clearAllData()">Clear Data Now</button>
+  </div>
+</div>
+
+</div><!-- /form-container -->
+
+<div class="form-footer">
+  &copy; 2026 Hellman &amp; Associates, LLC &mdash; All information collected is subject to our Privacy Policy.<br>
+  This form does not store any data on our servers. All data remains on your device until you submit.
+</div>
+
+<script>
+// ── Timeout management ──
+let timeoutId, warningId;
+const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const WARNING_MS = 25 * 60 * 1000; // warn at 25 min
+
+function resetTimeout() {
+  clearTimeout(timeoutId);
+  clearTimeout(warningId);
+  warningId = setTimeout(showTimeoutWarning, WARNING_MS);
+  timeoutId = setTimeout(clearAllData, TIMEOUT_MS);
+}
+
+function showTimeoutWarning() {
+  document.getElementById('timeout-overlay').style.display = 'flex';
+}
+
+function continueSession() {
+  document.getElementById('timeout-overlay').style.display = 'none';
+  resetTimeout();
+}
+
+function clearAllData() {
+  document.getElementById('timeout-overlay').style.display = 'none';
+  document.getElementById('organizer-form').reset();
+  document.querySelectorAll('.conditional').forEach(s => s.style.display = 'none');
+  window.scrollTo(0, 0);
+  alert('Your session has timed out for security. All entered data has been cleared.');
+}
+
+// ── Screening question handler ──
+function handleScreening(radio) {
+  const name = radio.name;
+  const val = radio.value;
+  const row = radio.closest('.yn-row');
+  const detail = row ? row.querySelector('.yn-detail') : null;
+  if (detail) {
+    detail.classList.toggle('visible', val === 'yes');
+  }
+  updateConditionalSections();
+  updateProgress();
+}
+
+// ── Dynamic table rows ──
+function addTableRow(tableId, template) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  const row = document.createElement('tr');
+  row.innerHTML = template;
+  tbody.appendChild(row);
+}
+
+function removeTableRow(btn) {
+  const row = btn.closest('tr');
+  if (row) row.remove();
+}
+
+// ── Collapsible sections ──
+function toggleCollapsible(header) {
+  header.parentElement.classList.toggle('collapsed');
+}
+
+// ── Progress tracking ──
+function updateProgress() {
+  const allRequired = document.querySelectorAll('[required]');
+  const filledRequired = Array.from(allRequired).filter(el => {
+    if (el.type === 'radio') {
+      return document.querySelector(`input[name="${el.name}"]:checked`);
+    }
+    return el.value.trim() !== '';
+  });
+  const ynRows = document.querySelectorAll('.yn-row');
+  let ynAnswered = 0;
+  const ynNames = new Set();
+  ynRows.forEach(row => {
+    const radios = row.querySelectorAll('input[type="radio"]');
+    if (radios.length) {
+      const name = radios[0].name;
+      if (!ynNames.has(name)) {
+        ynNames.add(name);
+        if (document.querySelector(`input[name="${name}"]:checked`)) ynAnswered++;
+      }
+    }
+  });
+  const totalItems = allRequired.length + ynNames.size;
+  const filledItems = filledRequired.length + ynAnswered;
+  const pct = totalItems > 0 ? Math.round((filledItems / totalItems) * 100) : 0;
+  const fill = document.getElementById('progress-fill');
+  const text = document.getElementById('progress-text');
+  if (fill) fill.style.width = pct + '%';
+  if (text) text.textContent = pct + '% complete';
+}
+
+// ── Currency formatting with commas ──
+function formatCurrency(input) {
+  // Get cursor position relative to end (to restore after formatting)
+  const cursorFromEnd = input.value.length - (input.selectionStart || input.value.length);
+  // Strip everything except digits and decimal
+  let val = input.value.replace(/[^0-9.]/g, '');
+  if (val === '') { input.value = ''; return; }
+  // Handle multiple decimals
+  const parts = val.split('.');
+  if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+  // Limit to 2 decimal places
+  const finalParts = val.split('.');
+  if (finalParts[1] && finalParts[1].length > 2) {
+    finalParts[1] = finalParts[1].substring(0, 2);
+    val = finalParts[0] + '.' + finalParts[1];
+  }
+  // Add commas to integer part
+  const intPart = finalParts[0].replace(/^0+(?=\d)/, '');
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  input.value = finalParts.length > 1 ? withCommas + '.' + (finalParts[1] || '') : withCommas;
+  // Restore cursor position relative to end
+  const newPos = input.value.length - cursorFromEnd;
+  if (input === document.activeElement) {
+    input.setSelectionRange(Math.max(0, newPos), Math.max(0, newPos));
+  }
+}
+
+// Get raw numeric value (strip commas) for PDF generation
+function getRawCurrency(name) {
+  const el = document.querySelector(`[name="${name}"]`);
+  return el ? el.value.replace(/,/g, '') : '';
+}
+
+// ── SSN masking ──
+function maskSSN(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 9);
+  if (val.length > 5) val = val.substring(0,3) + '-' + val.substring(3,5) + '-' + val.substring(5);
+  else if (val.length > 3) val = val.substring(0,3) + '-' + val.substring(3);
+  input.value = val;
+}
+
+function maskEIN(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 9);
+  if (val.length > 2) val = val.substring(0,2) + '-' + val.substring(2);
+  input.value = val;
+}
+
+function maskPhone(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 10);
+  if (val.length > 6) val = val.substring(0,3) + '-' + val.substring(3,6) + '-' + val.substring(6);
+  else if (val.length > 3) val = val.substring(0,3) + '-' + val.substring(3);
+  input.value = val;
+}
+
+function updateConditionalSections() {
+  // Individual organizer triggers
+  const triggers = {
+    "sec-income": [
+        "q_w2_income",
+        "q_1099_income",
+        "q_social_security",
+        "q_gambling",
+        "q_other_income"
+    ],
+    "sec-sales": [
+        "q_sold_stock",
+        "q_installment_sale"
+    ],
+    "sec-deductions": [
+        "q_charitable",
+        "q_sales_tax",
+        "q_medical",
+        "q_itemize_choice"
+    ],
+    "sec-adjustments": [
+        "q_educator",
+        "q_hsa",
+        "q_ira_contrib",
+        "q_student_loan",
+        "q_self_emp_retire"
+    ],
+    "sec-schedule-c": [
+        "q_home_office_car",
+        "q_gig_economy",
+        "q_self_employed"
+    ],
+    "sec-schedule-e": [
+        "q_rental_property"
+    ],
+    "sec-estimated": [
+        "q_estimated_payments"
+    ]
+};
+
+  for (const [sectionId, questionNames] of Object.entries(triggers)) {
+    const section = document.getElementById(sectionId);
+    if (!section) continue;
+    const shouldShow = questionNames.some(qn => {
+      const checked = document.querySelector(`input[name="${qn}"]:checked`);
+      return checked && checked.value === 'yes';
+    });
+    const wasHidden = section.style.display === 'none';
+    section.style.display = shouldShow ? '' : 'none';
+    if (shouldShow && wasHidden) {
+      setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  }
+}
+
+// ── Marital status handler ──
+function handleMaritalStatus() {
+  const checked = document.querySelector('input[name="marital_status"]:checked');
+  const spouseSection = document.getElementById('sec-spouse');
+  if (spouseSection && checked) {
+    const showSpouse = ['married', 'surviving_spouse', 'rdp'].includes(checked.value);
+    spouseSection.style.display = showSpouse ? '' : 'none';
+  }
+}
+
+// ── PDF Generation ──
+function generatePDF() {
+  const form = document.getElementById('organizer-form');
+
+  // Basic validation
+  const tp_first = form.querySelector('[name="tp_first_name"]');
+  const tp_last = form.querySelector('[name="tp_last_name"]');
+  const tp_ssn = form.querySelector('[name="tp_ssn"]');
+  const tp_sig = form.querySelector('[name="tp_signature"]');
+
+  if (!tp_first || !tp_first.value.trim()) { alert('Please enter the taxpayer first name.'); tp_first.focus(); return; }
+  if (!tp_last || !tp_last.value.trim()) { alert('Please enter the taxpayer last name.'); tp_last.focus(); return; }
+  if (!tp_ssn || tp_ssn.value.replace(/\D/g,'').length !== 9) { alert('Please enter a valid 9-digit Social Security Number.'); tp_ssn.focus(); return; }
+  if (!tp_sig || !tp_sig.value.trim()) { alert('Please type your full legal name in the signature field to sign the organizer.'); tp_sig.focus(); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+
+  const pw = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  const cw = pw - 2 * margin;
+  let y = margin;
+
+  function checkPage(needed) {
+    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  }
+
+  function addHeader() {
+    doc.setFillColor(44, 95, 138);
+    doc.rect(0, 0, pw, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Hellman & Associates, LLC', margin, 10);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('TAX PREP TECH', margin, 17);
+    doc.setTextColor(0, 0, 0);
+    y = 30;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('2025 Individual Taxpayer Organizer', pw / 2, y, { align: 'center' });
+    y += 10;
+  }
+
+  function addSectionTitle(title) {
+    checkPage(12);
+    doc.setFillColor(44, 95, 138);
+    doc.rect(margin, y, cw, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, margin + 3, y + 5);
+    doc.setTextColor(0, 0, 0);
+    y += 10;
+  }
+
+  function addFieldPair(label, value) {
+    checkPage(7);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label + ':', margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text(String(value || ''), margin + 50, y);
+    y += 6;
+  }
+
+  function addFieldRow(pairs) {
+    checkPage(7);
+    const colW = cw / pairs.length;
+    pairs.forEach((p, i) => {
+      const x = margin + i * colW;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(85, 85, 85);
+      doc.text(p[0] + ':', x, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.text(String(p[1] || ''), x + 35, y);
+    });
+    y += 6;
+  }
+
+  function getVal(name) {
+    const el = form.querySelector(`[name="${name}"]`);
+    return el ? el.value : '';
+  }
+
+  function getRadio(name) {
+    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    return checked ? checked.value : '';
+  }
+
+  // Build PDF
+  addHeader();
+
+  // Personal Info
+  addSectionTitle('Taxpayer Information');
+  addFieldRow([['Name', getVal('tp_first_name') + ' ' + getVal('tp_mi') + ' ' + getVal('tp_last_name')], ['Tax ID', getVal('tp_ssn')]]);
+  addFieldRow([['Email', getVal('tp_email')], ['DOB', getVal('tp_dob')]]);
+  addFieldRow([['Occupation', getVal('tp_occupation')], ['New Client', getRadio('tp_new_client')]]);
+  addFieldPair('Address', getVal('tp_address') + ', ' + getVal('tp_city') + ', ' + getVal('tp_state') + ' ' + getVal('tp_zip'));
+  addFieldRow([['Primary Phone', getVal('tp_phone1')], ['Secondary Phone', getVal('tp_phone2')]]);
+  addFieldRow([['Driver License', getVal('tp_dl_no') + ' ' + getVal('tp_dl_state')], ['DL Exp', getVal('tp_dl_exp')]]);
+  y += 3;
+
+  // Marital status
+  addFieldPair('Marital Status', getRadio('marital_status'));
+
+  // Spouse (if applicable)
+  const ms = getRadio('marital_status');
+  if (['married', 'surviving_spouse', 'rdp'].includes(ms)) {
+    addSectionTitle('Spouse Information');
+    addFieldRow([['Name', getVal('sp_first_name') + ' ' + getVal('sp_mi') + ' ' + getVal('sp_last_name')], ['Tax ID', getVal('sp_ssn')]]);
+    addFieldRow([['Email', getVal('sp_email')], ['DOB', getVal('sp_dob')]]);
+    addFieldRow([['Occupation', getVal('sp_occupation')], ['Phone', getVal('sp_phone1')]]);
+    y += 3;
+  }
+
+  // Screening questions - collect Yes answers
+  addSectionTitle('Screening Questions - Items Answered Yes');
+  const ynRows = form.querySelectorAll('.yn-row');
+  let hasYes = false;
+  ynRows.forEach(row => {
+    const radio = row.querySelector('input[type="radio"]:checked');
+    if (radio && radio.value === 'yes') {
+      const text = row.querySelector('.yn-text');
+      if (text) {
+        checkPage(7);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        const lines = doc.splitTextToSize('- ' + text.textContent.trim(), cw);
+        doc.text(lines, margin, y);
+        y += lines.length * 4.5;
+        hasYes = true;
+      }
+    }
+  });
+  if (!hasYes) {
+    doc.setFontSize(9);
+    doc.text('No items answered Yes.', margin, y);
+    y += 6;
+  }
+
+  // Visible conditional sections - collect filled data
+  const visibleSections = form.querySelectorAll('.conditional');
+  visibleSections.forEach(section => {
+    if (section.style.display === 'none') return;
+    const title = section.querySelector('.section-header h2');
+    if (title) {
+      checkPage(14);
+      addSectionTitle(title.textContent);
+    }
+    // Collect all filled fields in this section
+    const fields = section.querySelectorAll('input, select, textarea');
+    fields.forEach(f => {
+      if (f.type === 'radio' || f.type === 'hidden') return;
+      if (f.value && f.value.trim()) {
+        const label = f.closest('.field, .expense-item, td');
+        const labelEl = label ? label.querySelector('label') : null;
+        const labelText = labelEl ? labelEl.textContent : f.name;
+        checkPage(7);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(85, 85, 85);
+        const lt = doc.splitTextToSize(labelText + ':', cw * 0.4);
+        doc.text(lt, margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.text(String(f.value), margin + cw * 0.42, y);
+        y += Math.max(lt.length * 4, 5);
+      }
+    });
+  });
+
+  // State Info
+  addSectionTitle('State Information');
+  addFieldRow([['Residency', getRadio('residency_status')], ['States', getVal('states_of_residence')]]);
+  addFieldRow([['Rent/Own', getRadio('rent_own')], ['Rent Paid', getVal('total_rent')]]);
+
+  // Estimated payments if visible
+  const estSec = document.getElementById('sec-estimated');
+  if (estSec && estSec.style.display !== 'none') {
+    addSectionTitle('Estimated Tax Payments - Tax Year 2025');
+    ['est_1','est_2','est_3','est_4'].forEach((prefix, i) => {
+      const labels = ['First','Second','Third','Fourth'];
+      addFieldRow([
+        [labels[i] + ' - Federal', getVal(prefix + '_fed')],
+        [labels[i] + ' - State', getVal(prefix + '_state')]
+      ]);
+    });
+    addFieldPair('2024 Overpayment Applied', getVal('est_prior_fed') + ' (Fed) / ' + getVal('est_prior_state') + ' (State)');
+    y += 3;
+  }
+
+  // Signature
+  addSectionTitle('Signatures');
+  addFieldPair('Taxpayer Signature', getVal('tp_signature'));
+  addFieldPair('Date', new Date().toLocaleDateString());
+  if (['married','surviving_spouse','rdp'].includes(ms)) {
+    addFieldPair('Spouse Signature', getVal('sp_signature'));
+    addFieldPair('Date', new Date().toLocaleDateString());
+  }
+
+  // Footer on each page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Confidential - ' + new Date().toLocaleDateString() + ' - Page ' + i + ' of ' + pageCount,
+      pw / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+  }
+
+  const fileName = getVal('tp_last_name').toUpperCase() + '_' + getVal('tp_first_name') + '_2025_Organizer.pdf';
+  doc.save(fileName);
+
+  // Show confirmation
+  document.getElementById('organizer-form').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+  const conf = document.getElementById('confirmation');
+  conf.style.display = 'block';
+  document.getElementById('conf-name').textContent = getVal('tp_first_name') + ' ' + getVal('tp_last_name');
+  document.getElementById('conf-ref').textContent = 'REF-' + Date.now().toString(36).toUpperCase();
+  document.getElementById('conf-date').textContent = new Date().toLocaleString();
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', function() {
+  resetTimeout();
+  document.addEventListener('keydown', resetTimeout);
+  document.addEventListener('click', resetTimeout);
+  document.addEventListener('input', resetTimeout);
+
+  // Currency formatting (live as user types)
+  document.querySelectorAll('.currency-input').forEach(input => {
+    input.addEventListener('input', function() { formatCurrency(this); });
+  });
+
+  // SSN masking
+  document.querySelectorAll('[data-mask="ssn"]').forEach(input => {
+    input.addEventListener('input', function() { maskSSN(this); });
+  });
+
+  // EIN masking
+  document.querySelectorAll('[data-mask="ein"]').forEach(input => {
+    input.addEventListener('input', function() { maskEIN(this); });
+  });
+
+  // Phone masking
+  document.querySelectorAll('[data-mask="phone"]').forEach(input => {
+    input.addEventListener('input', function() { maskPhone(this); });
+  });
+
+  // Progress tracking
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('change', updateProgress);
+    el.addEventListener('input', updateProgress);
+  });
+
+  // Marital status change
+  document.querySelectorAll('input[name="marital_status"]').forEach(r => {
+    r.addEventListener('change', handleMaritalStatus);
+  });
+
+  updateProgress();
+});
+</script>
+</body>
+</html>

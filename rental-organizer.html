@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rental Property Organizer (Schedule E) - Tax Prep Tech</title>
+<style>
+:root {
+  --accent: #2C5F8A;
+  --accent-light: #E8F0F7;
+  --body: #1A1A1A;
+  --muted: #555555;
+  --border: #CCCCCC;
+  --radius: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: var(--body); background: #f5f7fa; line-height: 1.5; }
+.form-container { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.firm-header { background: var(--accent); color: #fff; padding: 20px 28px; border-radius: var(--radius) var(--radius) 0 0; }
+.firm-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+.firm-header .firm-dba { font-size: 15px; font-weight: 400; opacity: 0.9; }
+.firm-header .firm-contact { font-size: 12px; margin-top: 8px; opacity: 0.8; }
+.form-title { background: #fff; border: 1px solid var(--border); border-top: none; padding: 18px 28px; text-align: center; }
+.form-title h2 { font-size: 20px; color: var(--accent); font-weight: 700; }
+.form-title .tax-year { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* Progress */
+.progress-bar { background: #fff; border: 1px solid var(--border); border-top: none; padding: 12px 28px; }
+.progress-track { background: #e9ecef; border-radius: 10px; height: 8px; overflow: hidden; }
+.progress-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 10px; }
+.progress-text { font-size: 12px; color: var(--muted); margin-top: 4px; text-align: right; }
+
+/* Sections */
+.form-section { background: #fff; border: 1px solid var(--border); border-top: none; }
+.form-section.conditional { border-left: 3px solid var(--accent); }
+.section-header { background: var(--accent-light); padding: 12px 28px; border-bottom: 1px solid var(--border); cursor: default; }
+.section-header h2 { font-size: 15px; font-weight: 700; color: var(--accent); }
+.section-body { padding: 20px 28px; }
+
+/* Fields */
+.field-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.field { flex: 1 1 100%; }
+.field-half { flex: 1 1 calc(50% - 6px); min-width: 200px; }
+.field-third { flex: 1 1 calc(33.33% - 8px); min-width: 160px; }
+.field-quarter { flex: 1 1 calc(25% - 9px); min-width: 130px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+.field input, .field select, .field textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; color: var(--body); background: #fff; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(44,95,138,0.15); }
+.field input[type="date"] { padding: 6px 10px; }
+
+/* Currency fields */
+.currency-wrap { position: relative; }
+.dollar-sign { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+.currency-input { padding-left: 22px !important; }
+
+/* Radio/checkbox groups */
+.radio-group { display: flex; gap: 16px; flex-wrap: wrap; padding: 4px 0; }
+.radio-group label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.checkbox-row label { font-size: 14px; cursor: pointer; }
+
+/* Yes/No screening questions */
+.yn-group-title { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.yn-group-title:first-child { margin-top: 0; }
+.yn-row { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.yn-buttons { display: flex; gap: 4px; flex-shrink: 0; padding-top: 1px; }
+.yn-btn { cursor: pointer; }
+.yn-btn input { display: none; }
+.yn-label { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); color: var(--muted); transition: all 0.15s; }
+.yn-btn input:checked + .yes-label { background: #28a745; color: #fff; border-color: #28a745; }
+.yn-btn input:checked + .no-label { background: #dc3545; color: #fff; border-color: #dc3545; }
+.yn-text { font-size: 14px; line-height: 1.4; padding-top: 2px; flex: 1; }
+.yn-detail { margin: 8px 0 8px 80px; padding: 12px; background: var(--accent-light); border-radius: 4px; display: none; }
+.yn-detail.visible { display: block; }
+
+/* Dynamic tables */
+.dynamic-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.dynamic-table th { background: var(--accent); color: #fff; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.dynamic-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+.dynamic-table input, .dynamic-table select { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 3px; font-size: 13px; }
+.btn-add { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.btn-add:hover { background: var(--accent); color: #fff; }
+.btn-remove { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 2px 6px; }
+
+/* Expense grid (two-column) — fixed widths prevent overlap */
+.expense-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+.expense-item { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
+.expense-item label { font-size: 12px; flex: 1 1 0%; min-width: 0; line-height: 1.3; overflow-wrap: break-word; }
+.expense-item .currency-wrap { width: 100px; min-width: 100px; max-width: 100px; flex: 0 0 100px; position: relative; }
+.expense-item .currency-input { width: 100%; font-size: 12px; padding: 5px 5px 5px 18px !important; box-sizing: border-box; }
+.expense-item .dollar-sign { font-size: 12px; left: 6px; }
+
+/* Collapsible help */
+.collapsible { margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 4px; }
+.collapsible-header { padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent); background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
+.collapsible-header:hover { background: var(--accent-light); }
+.collapse-icon { font-size: 10px; transition: transform 0.2s; }
+.collapsible.collapsed .collapsible-content { display: none; }
+.collapsible.collapsed .collapse-icon { transform: rotate(-90deg); }
+.collapsible-content { padding: 12px 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* Subsection divider */
+.subsection { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e8e8e8; }
+.subsection-title { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+
+/* Notes */
+.form-note { font-size: 12px; color: var(--muted); font-style: italic; margin: 6px 0; line-height: 1.4; }
+.form-note.important { color: #856404; background: #fff3cd; padding: 8px 12px; border-radius: 4px; font-style: normal; }
+
+/* Signature */
+.sig-block { margin: 16px 0; }
+.sig-line { border-bottom: 1px solid var(--body); margin-bottom: 4px; padding: 8px 0; }
+.sig-label { font-size: 12px; color: var(--muted); }
+.sig-input { border: none; border-bottom: 2px solid var(--accent); background: transparent; font-size: 16px; font-family: 'Georgia', serif; padding: 8px 4px; width: 100%; font-style: italic; }
+.sig-input:focus { outline: none; border-bottom-color: #1a4a6e; }
+.sig-meta { font-size: 11px; color: var(--muted); margin-top: 12px; }
+
+/* Buttons */
+.form-actions { text-align: center; padding: 24px 28px; background: #fff; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
+.btn-submit { padding: 14px 48px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; }
+.btn-submit:hover { background: #1a4a6e; }
+.btn-submit:disabled { background: #999; cursor: not-allowed; }
+
+/* Confirmation */
+.confirmation { display: none; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; text-align: center; margin-top: 20px; }
+.confirmation h2 { color: #28a745; font-size: 24px; margin-bottom: 12px; }
+.confirmation .conf-detail { text-align: left; max-width: 600px; margin: 20px auto; background: var(--accent-light); padding: 20px; border-radius: var(--radius); font-size: 14px; line-height: 1.8; }
+
+/* Validation */
+.field.error input, .field.error select { border-color: #dc3545; background: #fff5f5; }
+.error-msg { font-size: 11px; color: #dc3545; margin-top: 2px; }
+
+/* Timeout warning */
+.timeout-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
+.timeout-modal { background: #fff; padding: 32px; border-radius: 8px; max-width: 420px; text-align: center; }
+.timeout-modal h3 { color: #dc3545; margin-bottom: 12px; }
+.timeout-modal button { margin: 8px; padding: 10px 24px; border-radius: 4px; font-size: 14px; cursor: pointer; }
+.btn-continue { background: var(--accent); color: #fff; border: none; }
+.btn-clear { background: #fff; color: #dc3545; border: 1px solid #dc3545; }
+
+/* Footer */
+.form-footer { text-align: center; padding: 16px; font-size: 11px; color: var(--muted); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .form-container { padding: 8px; }
+  .section-body { padding: 14px 16px; }
+  .field-half, .field-third, .field-quarter { flex: 1 1 100%; }
+  .expense-grid { grid-template-columns: 1fr; }
+  .yn-row { flex-direction: column; gap: 6px; }
+  .yn-detail { margin-left: 0; }
+}
+@media print {
+  body { background: #fff; }
+  .btn-add, .btn-remove, .btn-submit, .form-actions, .progress-bar { display: none; }
+  .form-section { break-inside: avoid; border: none; }
+  .section-header { background: none; padding: 8px 0; }
+  .collapsible-content { display: block !important; }
+}
+
+/* Rental Property Grid Tables */
+.rental-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.rental-grid th,
+.rental-grid td {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+}
+
+.rental-grid th {
+  background: #f0f4f8;
+  color: #2C5F8A;
+  font-weight: 600;
+  text-align: center;
+}
+
+.rental-grid td:first-child {
+  text-align: left;
+  font-weight: 500;
+  min-width: 180px;
+  background: #fafbfc;
+}
+
+.rental-grid .currency-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.rental-grid .currency-input {
+  width: 100%;
+  padding: 5px 5px 5px 18px;
+  font-size: 13px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+.rental-grid .dollar-sign {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #999;
+}
+
+.property-block {
+  background: #fafbfc;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.property-block .property-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2C5F8A;
+  margin-bottom: 12px;
+}
+
+.property-block .field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Dynamic improvements table */
+#improvements-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+#improvements-table th {
+  background: #f0f4f8;
+  color: #2C5F8A;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+}
+
+#improvements-table td {
+  padding: 4px 6px;
+  border: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+#improvements-table input[type="text"],
+#improvements-table input[type="date"] {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+#improvements-table .currency-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+#improvements-table .currency-input {
+  width: 100%;
+  padding: 4px 4px 4px 16px;
+  font-size: 12px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+#improvements-table .dollar-sign {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #999;
+}
+
+#improvements-table select {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="form-container">
+
+<!-- Firm Header -->
+<div class="firm-header">
+  <h1>Hellman &amp; Associates, LLC</h1>
+  <div class="firm-dba">TAX PREP TECH</div>
+</div>
+
+<!-- Form Title -->
+<div class="form-title">
+  <h2>Rental Property Organizer (Schedule E)</h2>
+  <div class="tax-year">Please complete all applicable sections</div>
+</div>
+
+<!-- Progress Bar -->
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-text" id="progress-text">0% complete</div>
+</div>
+
+<form id="organizer-form" onsubmit="event.preventDefault(); generatePDF();" autocomplete="off">
+<div class="form-note important">
+  <strong>IRS REQUIRES WE HAVE ON FILE YOUR OWN INFORMATION TO SUPPORT SCHEDULE E</strong>
+</div><section id="sec-property-info" class="form-section"><div class="section-header"><h2>Property Information</h2></div><div class="section-body">
+<div class="property-block">
+  <div class="property-title">Rental Property #1</div>
+  <div class="field-row">
+    <div class="field"><label>Address</label><input type="text" name="prop1_address"></div>
+  </div>
+  <div class="field-row">
+    <div class="field field-quarter"><label>Purchase Date</label><input type="date" name="prop1_purchase_date"></div>
+    <div class="field currency-field field-half"><label>Initial Cost</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="prop1_initial_cost" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field field-half"><label>Improvements to Date</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="prop1_improvements" class="currency-input" inputmode="decimal"></div></div>
+  </div>
+</div>
+
+<div class="property-block">
+  <div class="property-title">Rental Property #2</div>
+  <div class="field-row">
+    <div class="field"><label>Address</label><input type="text" name="prop2_address"></div>
+  </div>
+  <div class="field-row">
+    <div class="field field-quarter"><label>Purchase Date</label><input type="date" name="prop2_purchase_date"></div>
+    <div class="field currency-field field-half"><label>Initial Cost</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="prop2_initial_cost" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field field-half"><label>Improvements to Date</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="prop2_improvements" class="currency-input" inputmode="decimal"></div></div>
+  </div>
+</div>
+
+<div class="property-block">
+  <div class="property-title">Rental Property #3</div>
+  <div class="field-row">
+    <div class="field"><label>Address</label><input type="text" name="prop3_address"></div>
+  </div>
+  <div class="field-row">
+    <div class="field field-quarter"><label>Purchase Date</label><input type="date" name="prop3_purchase_date"></div>
+    <div class="field currency-field field-half"><label>Initial Cost</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="prop3_initial_cost" class="currency-input" inputmode="decimal"></div></div>
+    <div class="field currency-field field-half"><label>Improvements to Date</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="prop3_improvements" class="currency-input" inputmode="decimal"></div></div>
+  </div>
+</div>
+
+<div class="field-row">
+  <div class="field field-quarter"><label>Tax Year</label><input type="text" name="tax_year" placeholder="e.g., 2025" inputmode="numeric" maxlength="4"></div>
+</div>
+</div></section><section id="sec-income" class="form-section"><div class="section-header"><h2>Rental Income</h2></div><div class="section-body">
+<p class="form-note">Enter gross rents received for each property during the tax year.</p>
+
+<table class="rental-grid">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Rental #1</th>
+      <th>Rental #2</th>
+      <th>Rental #3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Rents Received</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="rent_received_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="rent_received_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="rent_received_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Other Rental Income</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="rent_other_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="rent_other_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="rent_other_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+  </tbody>
+</table>
+</div></section><section id="sec-expenses" class="form-section"><div class="section-header"><h2>Rental Expenses</h2></div><div class="section-body">
+<p class="form-note">Enter all rental expenses for each property below.</p>
+
+<table class="rental-grid">
+  <thead>
+    <tr>
+      <th>Expense Category</th>
+      <th>Rental #1</th>
+      <th>Rental #2</th>
+      <th>Rental #3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Advertising</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_advertising_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_advertising_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_advertising_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Cleaning & Maintenance</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_cleaning_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_cleaning_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_cleaning_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Commissions</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_commissions_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_commissions_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_commissions_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>HOA Dues</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_hoa_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_hoa_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_hoa_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Insurance</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_insurance_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_insurance_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_insurance_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Legal & Professional Fees</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_legal_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_legal_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_legal_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Management Fees</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_management_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_management_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_management_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Mortgage Interest</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_mortgage_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_mortgage_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_mortgage_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Other Interest</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other_interest_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other_interest_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other_interest_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Repairs</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_repairs_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_repairs_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_repairs_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Supplies</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_supplies_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_supplies_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_supplies_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Taxes</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_taxes_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Utilities</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_utilities_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_utilities_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_utilities_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Other 1</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other1_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other1_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other1_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+    <tr>
+      <td>Other 2</td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other2_1" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other2_2" class="currency-input" inputmode="decimal"></div></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="exp_other2_3" class="currency-input" inputmode="decimal"></div></td>
+    </tr>
+  </tbody>
+</table>
+</div></section><section id="sec-mileage" class="form-section"><div class="section-header"><h2>Mileage</h2></div><div class="section-body">
+<p class="form-note">Enter business mileage to and from rentals for each property.</p>
+
+<table class="rental-grid">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Rental #1</th>
+      <th>Rental #2</th>
+      <th>Rental #3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Business Mileage to and from Rentals</td>
+      <td><div style="padding: 5px;"><input type="number" name="mileage_1" inputmode="numeric" style="width: 100%; padding: 5px 8px; border: 1px solid #ddd; border-radius: 3px;"></div></td>
+      <td><div style="padding: 5px;"><input type="number" name="mileage_2" inputmode="numeric" style="width: 100%; padding: 5px 8px; border: 1px solid #ddd; border-radius: 3px;"></div></td>
+      <td><div style="padding: 5px;"><input type="number" name="mileage_3" inputmode="numeric" style="width: 100%; padding: 5px 8px; border: 1px solid #ddd; border-radius: 3px;"></div></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="yn-group-title">Mileage Evidence</div>
+<div class="yn-row" data-trigger="q_mileage_evidence">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_mileage_evidence" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_mileage_evidence" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Do you have evidence to support your mileage?</div>
+  <div class="yn-detail">
+  <div class="field"><label>Is the evidence written? (e.g., mileage logs)</label>
+    <div class="radio-group"><label><input type="radio" name="q_mileage_written" value="yes"> Yes</label><label><input type="radio" name="q_mileage_written" value="no"> No</label></div>
+  </div>
+</div>
+</div>
+<p class="form-note">EVIDENCE INCLUDES MILEAGE LOGS, APPOINTMENT RECORDS, CALENDARS, ETC. PLUS IRS COULD ASK FOR ODOMETER READINGS FROM OIL CHANGES, REPAIR INVOICES, PURCHASE AND SALE DOCUMENTS.</p>
+</div></section><section id="sec-improvements" class="form-section"><div class="section-header"><h2>Improvements & Purchases</h2></div><div class="section-body">
+<p class="form-note">List all capital improvements, appliance purchases, and HVAC replacements for each property. Include the placed-in-service date for depreciation purposes.</p>
+
+<table id="improvements-table">
+  <thead>
+    <tr>
+      <th style="min-width:160px">Description</th>
+      <th style="min-width:110px">Placed in Service</th>
+      <th style="min-width:90px">Property</th>
+      <th style="min-width:100px">Amount</th>
+      <th style="width:36px"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><input type="text" placeholder="e.g., New HVAC System"></td>
+      <td><input type="date"></td>
+      <td><select><option value="">Select</option><option value="1">Rental #1</option><option value="2">Rental #2</option><option value="3">Rental #3</option></select></td>
+      <td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" class="currency-input" inputmode="decimal"></div></td>
+      <td><button type="button" class="btn-remove" onclick="removeTableRow(this)">&#x2715;</button></td>
+    </tr>
+  </tbody>
+</table>
+<button type="button" class="btn-add" onclick="addImprovementRow()">+ Add Improvement</button>
+</div></section><section id="sec-home-office" class="form-section"><div class="section-header"><h2>Home Office</h2></div><div class="section-body">
+<div class="yn-row" data-trigger="q_home_office">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_home_office" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_home_office" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Do you have an office in your home you use exclusively for business?</div>
+  <div class="yn-detail">
+<div class="field-row">
+  <div class="field field-quarter"><label>Sq. Ft. of Office</label><input type="number" name="ho_office_sqft" inputmode="numeric"></div>
+  <div class="field field-quarter"><label>Sq. Ft. of Home</label><input type="number" name="ho_home_sqft" inputmode="numeric"></div>
+</div>
+<div class="field-row">
+  <div class="field currency-field"><label>Mortgage Interest or Rent Paid</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ho_mortgage_rent" class="currency-input" inputmode="decimal"></div></div>
+  <div class="field currency-field"><label>Home Owner's Insurance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ho_insurance" class="currency-input" inputmode="decimal"></div></div>
+</div>
+<div class="field-row">
+  <div class="field currency-field"><label>Real Estate Taxes</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ho_taxes" class="currency-input" inputmode="decimal"></div></div>
+  <div class="field currency-field"><label>Utilities (Gas and Electric)</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ho_utilities" class="currency-input" inputmode="decimal"></div></div>
+</div>
+<div class="field-row">
+  <div class="field currency-field"><label>Repairs and Maintenance</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ho_repairs" class="currency-input" inputmode="decimal"></div></div>
+  <div class="field currency-field"><label>Other Home Office Expenses</label><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" name="ho_other" class="currency-input" inputmode="decimal"></div></div>
+</div>
+</div>
+</div>
+</div></section><section id="sec-material-participation" class="form-section"><div class="section-header"><h2>Material Participation</h2></div><div class="section-body">
+<div class="yn-row" data-trigger="q_material_participation">
+  <div class="yn-buttons">
+    <label class="yn-btn"><input type="radio" name="q_material_participation" value="yes" onchange="handleScreening(this)"><span class="yn-label yes-label">Yes</span></label>
+    <label class="yn-btn"><input type="radio" name="q_material_participation" value="no" onchange="handleScreening(this)"><span class="yn-label no-label">No</span></label>
+  </div>
+  <div class="yn-text">Did you spend at least 250 hours on your rentals?</div>
+  <div class="yn-detail">
+  <div class="field"><label>Can you prove it to IRS if requested?</label>
+    <div class="radio-group"><label><input type="radio" name="q_participation_proof" value="yes"> Yes</label><label><input type="radio" name="q_participation_proof" value="no"> No</label></div>
+  </div>
+</div>
+</div>
+</div></section><section id="sec-signature" class="form-section"><div class="section-header"><h2>Responsibilities &amp; Signature</h2></div><div class="section-body">
+<p style="font-size:13px;line-height:1.6;margin-bottom:16px">
+By signing below, I certify that I have listed all income and expenses, and I have documentation to back up
+the figures entered on this worksheet. I am aware that false statements on this document may result in
+penalties under Section 7206 of the Internal Revenue Code.
+</p>
+<div class="subsection"><div class="subsection-title">Electronic Signature</div></div>
+<div class="sig-block">
+  <label class="sig-label">Type your full legal name to sign:</label>
+  <input type="text" class="sig-input" name="sig_name" placeholder="Full Legal Name" required>
+  <div class="sig-label" style="margin-top:8px">Date:</div>
+  <input type="date" name="sig_date" required readonly style="max-width:200px;border:none;border-bottom:2px solid var(--accent);background:transparent">
+</div>
+<p class="sig-meta" id="sig-meta"></p>
+</div></section><section id="sec-privacy" class="form-section"><div class="section-header"><h2>Privacy &amp; Security</h2></div><div class="section-body"><div class="collapsible collapsed">
+  <div class="collapsible-header" onclick="toggleCollapsible(this)">Click to read our Privacy Policy<span class="collapse-icon">&#9660;</span></div>
+  <div class="collapsible-content">
+<p><strong>Privacy Protection:</strong> This form does not store any data on our servers. All information you enter remains on your device until you click "Generate & Download." The PDF file is not password-protected, so please do not email it or transmit it over unsecured channels. Instead, upload the completed organizer to your secure Verifyle portal.</p>
+
+<p><strong>Data Handling:</strong> When you generate the PDF, the data on your device is used to create the document. Your information is not logged, archived, or transmitted to any server. Once you close this page or your session expires (after 30 minutes of inactivity), all data is permanently cleared from your browser.</p>
+
+<p><strong>Encryption & Security:</strong> We strongly recommend using Verifyle (or a similar secure portal) to transmit your completed organizer and supporting documents to your tax preparer. Verifyle provides end-to-end encryption to protect your sensitive financial and personal information.</p>
+
+<p><strong>Your Responsibilities:</strong> You are responsible for the accuracy and completeness of all information you provide. Please review your entries carefully before generating the PDF. Keep a copy for your records.</p>
+
+<p><strong>Questions?:</strong> If you have questions about this form or our privacy practices, contact your tax preparer or our firm directly.</p>
+</div>
+</div></div></section>
+<!-- Submit -->
+<div class="form-actions">
+  <p style="font-size:13px;color:#555;margin-bottom:16px">When you click Generate &amp; Download, a PDF of your completed organizer will be created and downloaded to your device. This PDF is not password-protected. Please upload it to your Verifyle portal for secure delivery to your preparer. Do not email it or transmit it over unsecured channels.</p>
+  <button type="submit" class="btn-submit">Generate &amp; Download Organizer</button>
+</div>
+
+</form>
+
+<!-- Confirmation Screen -->
+<div id="confirmation" class="confirmation">
+  <h2>&#10003; Organizer Generated Successfully</h2>
+  <p style="font-size:16px;color:#333">Thank you, <strong id="conf-name"></strong>.</p>
+  <div class="conf-detail">
+    <p><strong>Reference:</strong> <span id="conf-ref"></span></p>
+    <p><strong>Generated:</strong> <span id="conf-date"></span></p>
+    <p style="margin-top:12px"><strong>Next Steps:</strong></p>
+    <p>1. The PDF has been downloaded to your device. <strong>This PDF is not password-protected.</strong> Please do not email it or transmit it over unsecured channels.</p>
+    <p>2. Upload the completed organizer PDF to your <strong>Verifyle portal</strong>. Verifyle provides end-to-end encryption to protect your sensitive information.</p>
+    <p>3. Upload your supporting documents (W-2s, 1099s, bank statements, etc.) to your <strong>Verifyle portal</strong> as well.</p>
+    <p>4. Your preparer will review the organizer and follow up with any additional questions.</p>
+  </div>
+</div>
+
+<!-- Timeout Warning -->
+<div id="timeout-overlay" class="timeout-overlay">
+  <div class="timeout-modal">
+    <h3>Session Timeout Warning</h3>
+    <p style="margin:12px 0">For your security, your session will expire due to inactivity. All entered data will be cleared.</p>
+    <button class="btn-continue" onclick="continueSession()">Continue Working</button>
+    <button class="btn-clear" onclick="clearAllData()">Clear Data Now</button>
+  </div>
+</div>
+
+</div><!-- /form-container -->
+
+<div class="form-footer">
+  &copy; 2026 Hellman &amp; Associates, LLC &mdash; All information collected is subject to our Privacy Policy.<br>
+  This form does not store any data on our servers. All data remains on your device until you submit.
+</div>
+
+<script>
+// ── Timeout management ──
+let timeoutId, warningId;
+const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const WARNING_MS = 25 * 60 * 1000; // warn at 25 min
+
+function resetTimeout() {
+  clearTimeout(timeoutId);
+  clearTimeout(warningId);
+  warningId = setTimeout(showTimeoutWarning, WARNING_MS);
+  timeoutId = setTimeout(clearAllData, TIMEOUT_MS);
+}
+
+function showTimeoutWarning() {
+  document.getElementById('timeout-overlay').style.display = 'flex';
+}
+
+function continueSession() {
+  document.getElementById('timeout-overlay').style.display = 'none';
+  resetTimeout();
+}
+
+function clearAllData() {
+  document.getElementById('timeout-overlay').style.display = 'none';
+  document.getElementById('organizer-form').reset();
+  document.querySelectorAll('.conditional').forEach(s => s.style.display = 'none');
+  window.scrollTo(0, 0);
+  alert('Your session has timed out for security. All entered data has been cleared.');
+}
+
+// ── Screening question handler ──
+function handleScreening(radio) {
+  const name = radio.name;
+  const val = radio.value;
+  const row = radio.closest('.yn-row');
+  const detail = row ? row.querySelector('.yn-detail') : null;
+  if (detail) {
+    detail.classList.toggle('visible', val === 'yes');
+  }
+  updateConditionalSections();
+  updateProgress();
+}
+
+// ── Dynamic table rows ──
+function addTableRow(tableId, template) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  const row = document.createElement('tr');
+  row.innerHTML = template;
+  tbody.appendChild(row);
+}
+
+function removeTableRow(btn) {
+  const row = btn.closest('tr');
+  if (row) row.remove();
+}
+
+// ── Collapsible sections ──
+function toggleCollapsible(header) {
+  header.parentElement.classList.toggle('collapsed');
+}
+
+// ── Progress tracking ──
+function updateProgress() {
+  const allRequired = document.querySelectorAll('[required]');
+  const filledRequired = Array.from(allRequired).filter(el => {
+    if (el.type === 'radio') {
+      return document.querySelector(`input[name="${el.name}"]:checked`);
+    }
+    return el.value.trim() !== '';
+  });
+  const ynRows = document.querySelectorAll('.yn-row');
+  let ynAnswered = 0;
+  const ynNames = new Set();
+  ynRows.forEach(row => {
+    const radios = row.querySelectorAll('input[type="radio"]');
+    if (radios.length) {
+      const name = radios[0].name;
+      if (!ynNames.has(name)) {
+        ynNames.add(name);
+        if (document.querySelector(`input[name="${name}"]:checked`)) ynAnswered++;
+      }
+    }
+  });
+  const totalItems = allRequired.length + ynNames.size;
+  const filledItems = filledRequired.length + ynAnswered;
+  const pct = totalItems > 0 ? Math.round((filledItems / totalItems) * 100) : 0;
+  const fill = document.getElementById('progress-fill');
+  const text = document.getElementById('progress-text');
+  if (fill) fill.style.width = pct + '%';
+  if (text) text.textContent = pct + '% complete';
+}
+
+// ── Currency formatting with commas ──
+function formatCurrency(input) {
+  // Get cursor position relative to end (to restore after formatting)
+  const cursorFromEnd = input.value.length - (input.selectionStart || input.value.length);
+  // Strip everything except digits and decimal
+  let val = input.value.replace(/[^0-9.]/g, '');
+  if (val === '') { input.value = ''; return; }
+  // Handle multiple decimals
+  const parts = val.split('.');
+  if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+  // Limit to 2 decimal places
+  const finalParts = val.split('.');
+  if (finalParts[1] && finalParts[1].length > 2) {
+    finalParts[1] = finalParts[1].substring(0, 2);
+    val = finalParts[0] + '.' + finalParts[1];
+  }
+  // Add commas to integer part
+  const intPart = finalParts[0].replace(/^0+(?=\d)/, '');
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  input.value = finalParts.length > 1 ? withCommas + '.' + (finalParts[1] || '') : withCommas;
+  // Restore cursor position relative to end
+  const newPos = input.value.length - cursorFromEnd;
+  if (input === document.activeElement) {
+    input.setSelectionRange(Math.max(0, newPos), Math.max(0, newPos));
+  }
+}
+
+// Get raw numeric value (strip commas) for PDF generation
+function getRawCurrency(name) {
+  const el = document.querySelector(`[name="${name}"]`);
+  return el ? el.value.replace(/,/g, '') : '';
+}
+
+// ── SSN masking ──
+function maskSSN(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 9);
+  if (val.length > 5) val = val.substring(0,3) + '-' + val.substring(3,5) + '-' + val.substring(5);
+  else if (val.length > 3) val = val.substring(0,3) + '-' + val.substring(3);
+  input.value = val;
+}
+
+function maskEIN(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 9);
+  if (val.length > 2) val = val.substring(0,2) + '-' + val.substring(2);
+  input.value = val;
+}
+
+function maskPhone(input) {
+  let val = input.value.replace(/\D/g, '').substring(0, 10);
+  if (val.length > 6) val = val.substring(0,3) + '-' + val.substring(3,6) + '-' + val.substring(6);
+  else if (val.length > 3) val = val.substring(0,3) + '-' + val.substring(3);
+  input.value = val;
+}
+
+function updateConditionalSections() {
+  // Handled by handleScreening() for yn-detail toggles
+  // No cross-section triggers needed for rental organizer
+}
+
+function addImprovementRow() {
+  const tbody = document.querySelector('#improvements-table tbody');
+  const row = document.createElement('tr');
+  row.innerHTML = '<td><input type="text" placeholder="e.g., New Roof"></td><td><input type="date"></td><td><select><option value="">Select</option><option value="1">Rental #1</option><option value="2">Rental #2</option><option value="3">Rental #3</option></select></td><td><div class="currency-wrap"><span class="dollar-sign">$</span><input type="text" class="currency-input" inputmode="decimal"></div></td><td><button type="button" class="btn-remove" onclick="removeTableRow(this)">\u2715</button></td>';
+  tbody.appendChild(row);
+  // Wire up currency formatting on new row
+  row.querySelectorAll('.currency-input').forEach(input => {
+    input.addEventListener('input', function() { formatCurrency(this); });
+  });
+}
+
+function generatePDF() {
+  const form = document.getElementById('organizer-form');
+  const formData = new FormData(form);
+
+  if (!formData.get('sig_name')) {
+    alert('Please enter your signature (full legal name) before generating the PDF.');
+    return;
+  }
+
+    const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+
+  const pw = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  const cw = pw - 2 * margin;
+  let y = margin;
+
+  function checkPage(needed) {
+    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  }
+
+  function addHeader() {
+    doc.setFillColor(44, 95, 138);
+    doc.rect(0, 0, pw, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Hellman & Associates, LLC', margin, 10);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('TAX PREP TECH', margin, 17);
+    doc.setTextColor(0, 0, 0);
+    y = 30;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text((getVal('tax_year') ? getVal('tax_year') + ' ' : '') + 'Rental Property Organizer (Schedule E)', pw / 2, y, { align: 'center' });
+    y += 10;
+  }
+
+  function addSectionTitle(title) {
+    checkPage(12);
+    doc.setFillColor(44, 95, 138);
+    doc.rect(margin, y, cw, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, margin + 3, y + 5);
+    doc.setTextColor(0, 0, 0);
+    y += 10;
+  }
+
+  function addFieldPair(label, value) {
+    checkPage(7);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label + ':', margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text(String(value || ''), margin + 50, y);
+    y += 6;
+  }
+
+  function addFieldRow(pairs) {
+    checkPage(7);
+    const colW = cw / pairs.length;
+    pairs.forEach((p, i) => {
+      const x = margin + i * colW;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(85, 85, 85);
+      doc.text(p[0] + ':', x, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.text(String(p[1] || ''), x + 35, y);
+    });
+    y += 6;
+  }
+
+  function getVal(name) {
+    const el = form.querySelector(`[name="${name}"]`);
+    return el ? el.value : '';
+  }
+
+  function getRadio(name) {
+    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    return checked ? checked.value : '';
+  }
+
+  function getVal(name) {
+    const el = form.querySelector(`[name="${name}"]`);
+    return el ? el.value : '';
+  }
+
+  function getRadio(name) {
+    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    return checked ? checked.value : '';
+  }
+
+  addHeader();
+
+  // Property Information
+  addSectionTitle('PROPERTY INFORMATION');
+
+  const prop1Addr = getVal('prop1_address');
+  if (prop1Addr) {
+    doc.setFontSize(11);
+    doc.text('Rental Property #1', margin + 3, y);
+    y += 4;
+  }
+  addFieldPair('Address', prop1Addr);
+  addFieldPair('Purchase Date', getVal('prop1_purchase_date'));
+  addFieldPair('Initial Cost', '$' + getVal('prop1_initial_cost'));
+  addFieldPair('Improvements to Date', '$' + getVal('prop1_improvements'));
+
+  const prop2Addr = getVal('prop2_address');
+  if (prop2Addr) {
+    doc.setFontSize(11);
+    doc.text('Rental Property #2', margin + 3, y);
+    y += 4;
+  }
+  addFieldPair('Address', prop2Addr);
+  addFieldPair('Purchase Date', getVal('prop2_purchase_date'));
+  addFieldPair('Initial Cost', '$' + getVal('prop2_initial_cost'));
+  addFieldPair('Improvements to Date', '$' + getVal('prop2_improvements'));
+
+  const prop3Addr = getVal('prop3_address');
+  if (prop3Addr) {
+    doc.setFontSize(11);
+    doc.text('Rental Property #3', margin + 3, y);
+    y += 4;
+  }
+  addFieldPair('Address', prop3Addr);
+  addFieldPair('Purchase Date', getVal('prop3_purchase_date'));
+  addFieldPair('Initial Cost', '$' + getVal('prop3_initial_cost'));
+  addFieldPair('Improvements to Date', '$' + getVal('prop3_improvements'));
+
+  addFieldPair('Tax Year', getVal('tax_year'));
+
+  // Rental Income
+  addSectionTitle('RENTAL INCOME');
+  const incomeFields = [
+    ['Rents Received', 'rent_received'],
+    ['Other Rental Income', 'rent_other'],
+  ];
+  incomeFields.forEach(([label, prefix]) => {
+    const v1 = getVal(prefix + '_1');
+    const v2 = getVal(prefix + '_2');
+    const v3 = getVal(prefix + '_3');
+    if (v1 || v2 || v3) {
+      doc.setFontSize(9);
+      doc.text(label + ':', margin + 3, y);
+      y += 3;
+      if (v1) { addFieldPair('  Property #1', '$' + v1); }
+      if (v2) { addFieldPair('  Property #2', '$' + v2); }
+      if (v3) { addFieldPair('  Property #3', '$' + v3); }
+    }
+  });
+
+  // Expenses
+  addSectionTitle('RENTAL EXPENSES');
+  const expenseFields = [
+    ['Advertising', 'exp_advertising'],
+    ['Cleaning & Maintenance', 'exp_cleaning'],
+    ['Commissions', 'exp_commissions'],
+    ['HOA Dues', 'exp_hoa'],
+    ['Insurance', 'exp_insurance'],
+    ['Legal & Professional', 'exp_legal'],
+    ['Management Fees', 'exp_management'],
+    ['Mortgage Interest', 'exp_mortgage'],
+    ['Other Interest', 'exp_other_interest'],
+    ['Repairs', 'exp_repairs'],
+    ['Supplies', 'exp_supplies'],
+    ['Taxes', 'exp_taxes'],
+    ['Utilities', 'exp_utilities'],
+    ['Other 1', 'exp_other1'],
+    ['Other 2', 'exp_other2'],
+  ];
+
+  expenseFields.forEach(([label, prefix]) => {
+    const has1 = getVal(prefix + '_1');
+    const has2 = getVal(prefix + '_2');
+    const has3 = getVal(prefix + '_3');
+    if (has1 || has2 || has3) {
+      doc.setFontSize(9);
+      doc.text(label + ':', margin + 6, y);
+      y += 3;
+      if (has1) { addFieldPair('  Property #1', '$' + has1); }
+      if (has2) { addFieldPair('  Property #2', '$' + has2); }
+      if (has3) { addFieldPair('  Property #3', '$' + has3); }
+    }
+  });
+
+  // Mileage
+  addSectionTitle('MILEAGE');
+  const mile1 = getVal('mileage_1');
+  const mile2 = getVal('mileage_2');
+  const mile3 = getVal('mileage_3');
+  if (mile1 || mile2 || mile3) {
+    if (mile1) addFieldPair('Mileage #1', mile1 + ' miles');
+    if (mile2) addFieldPair('Mileage #2', mile2 + ' miles');
+    if (mile3) addFieldPair('Mileage #3', mile3 + ' miles');
+    addFieldPair('Mileage Evidence?', getRadio('q_mileage_evidence'));
+    if (getRadio('q_mileage_evidence') === 'yes') {
+      addFieldPair('Evidence is Written?', getRadio('q_mileage_written'));
+    }
+  }
+
+  // Improvements
+  const impRows = document.querySelectorAll('#improvements-table tbody tr');
+  let hasImps = false;
+  impRows.forEach(row => {
+    const desc = row.querySelector('input[type="text"]')?.value || '';
+    const amt = row.querySelector('.currency-input')?.value || '';
+    if (desc || amt) hasImps = true;
+  });
+  if (hasImps) {
+    addSectionTitle('IMPROVEMENTS & PURCHASES');
+    impRows.forEach(row => {
+      const desc = row.querySelector('input[type="text"]')?.value || '';
+      const pis = row.querySelector('input[type="date"]')?.value || '';
+      const prop = row.querySelector('select')?.value || '';
+      const amt = row.querySelector('.currency-input')?.value || '';
+      if (desc || amt) {
+        const propLabel = prop ? 'Rental #' + prop : 'N/A';
+        checkPage(6);
+        doc.setFontSize(9);
+        doc.text(desc + ' | In Service: ' + pis + ' | ' + propLabel + ' | $' + amt, margin + 3, y);
+        y += 5;
+      }
+    });
+  }
+
+  // Home Office
+  if (getRadio('q_home_office') === 'yes') {
+    addSectionTitle('HOME OFFICE');
+    addFieldPair('Office Sq. Ft.', getVal('ho_office_sqft'));
+    addFieldPair('Home Sq. Ft.', getVal('ho_home_sqft'));
+    addFieldPair('Mortgage/Rent', '$' + getVal('ho_mortgage_rent'));
+    addFieldPair('Insurance', '$' + getVal('ho_insurance'));
+    addFieldPair('Real Estate Taxes', '$' + getVal('ho_taxes'));
+    addFieldPair('Utilities', '$' + getVal('ho_utilities'));
+    addFieldPair('Repairs', '$' + getVal('ho_repairs'));
+    addFieldPair('Other', '$' + getVal('ho_other'));
+  }
+
+  // Material Participation
+  if (getRadio('q_material_participation') === 'yes') {
+    addSectionTitle('MATERIAL PARTICIPATION');
+    addFieldPair('250+ Hours on Rentals?', 'yes');
+    addFieldPair('Can Prove to IRS?', getRadio('q_participation_proof'));
+  }
+
+  // Signature
+  addSectionTitle('CERTIFICATION & SIGNATURE');
+  doc.setFontSize(9);
+  doc.text('I certify that I have listed all income and expenses, with documentation on file.', margin + 3, y);
+  y += 6;
+  addFieldPair('Signature', getVal('sig_name'));
+  addFieldPair('Date', getVal('sig_date'));
+
+    // Footer on each page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Confidential - ' + new Date().toLocaleDateString() + ' - Page ' + i + ' of ' + pageCount,
+      pw / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+  }
+
+  const taxYr = getVal('tax_year') || '2025';
+  const fileName = 'TAXPAYER_' + taxYr + '_RentalProperty_Organizer.pdf';
+  doc.save(fileName);
+
+  // Show confirmation
+  document.getElementById('organizer-form').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+  const conf = document.getElementById('confirmation');
+  conf.style.display = 'block';
+  document.getElementById('conf-name').textContent = 'Rental Property Organizer';
+  document.getElementById('conf-ref').textContent = 'REF-' + Date.now().toString(36).toUpperCase();
+  document.getElementById('conf-date').textContent = new Date().toLocaleString();
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', function() {
+  resetTimeout();
+  document.addEventListener('keydown', resetTimeout);
+  document.addEventListener('click', resetTimeout);
+  document.addEventListener('input', resetTimeout);
+
+  // Currency formatting (live as user types)
+  document.querySelectorAll('.currency-input').forEach(input => {
+    input.addEventListener('input', function() { formatCurrency(this); });
+  });
+
+  // SSN masking
+  document.querySelectorAll('[data-mask="ssn"]').forEach(input => {
+    input.addEventListener('input', function() { maskSSN(this); });
+  });
+
+  // EIN masking
+  document.querySelectorAll('[data-mask="ein"]').forEach(input => {
+    input.addEventListener('input', function() { maskEIN(this); });
+  });
+
+  // Phone masking
+  document.querySelectorAll('[data-mask="phone"]').forEach(input => {
+    input.addEventListener('input', function() { maskPhone(this); });
+  });
+
+  // Progress tracking
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('change', updateProgress);
+    el.addEventListener('input', updateProgress);
+  });
+
+  
+  // Auto-fill signature date and show timestamp on signing
+  const today = new Date().toISOString().split('T')[0];
+  const sigDate = document.querySelector('[name="sig_date"]');
+  if (sigDate) sigDate.value = today;
+  const sigInput = document.querySelector('[name="sig_name"]');
+  if (sigInput) {
+    sigInput.addEventListener('input', function() {
+      const meta = document.getElementById('sig-meta');
+      if (meta && this.value.trim()) {
+        meta.textContent = 'Signed electronically on ' + new Date().toLocaleString() + ' | This electronic signature has the same legal effect as a handwritten signature.';
+      } else if (meta) {
+        meta.textContent = '';
+      }
+    });
+  }
+
+  updateProgress();
+});
+</script>
+</body>
+</html>
