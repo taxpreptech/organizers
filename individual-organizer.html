@@ -1543,33 +1543,28 @@ function handleMaritalStatus() {
 // ── PDF Generation ──
 function generatePDF() {
   const form = document.getElementById('organizer-form');
+  if (!form.querySelector('[name="tp_signature"]').value.trim()) {
+    alert('Please enter your signature (full legal name) before generating the PDF.');
+    return;
+  }
 
-  // Basic validation
-  const tp_first = form.querySelector('[name="tp_first_name"]');
-  const tp_last = form.querySelector('[name="tp_last_name"]');
-  const tp_ssn = form.querySelector('[name="tp_ssn"]');
-  const tp_sig = form.querySelector('[name="tp_signature"]');
-
-  if (!tp_first || !tp_first.value.trim()) { alert('Please enter the taxpayer first name.'); tp_first.focus(); return; }
-  if (!tp_last || !tp_last.value.trim()) { alert('Please enter the taxpayer last name.'); tp_last.focus(); return; }
-  if (!tp_ssn || tp_ssn.value.replace(/\D/g,'').length !== 9) { alert('Please enter a valid 9-digit Social Security Number.'); tp_ssn.focus(); return; }
-  if (!tp_sig || !tp_sig.value.trim()) { alert('Please type your full legal name in the signature field to sign the organizer.'); tp_sig.focus(); return; }
-
-  const { jsPDF } = window.jspdf;
+    const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
 
   const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
   const margin = 15;
   const cw = pw - 2 * margin;
   let y = margin;
 
   function checkPage(needed) {
-    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
+    if (y + needed > ph - 15) {
       doc.addPage();
       y = margin;
     }
   }
 
+  /* ── Firm header and title ── */
   function addHeader() {
     doc.setFillColor(44, 95, 138);
     doc.rect(0, 0, pw, 22, 'F');
@@ -1585,11 +1580,13 @@ function generatePDF() {
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('2025 Individual Taxpayer Organizer', pw / 2, y, { align: 'center' });
-    y += 10;
+    y += 12;
   }
 
-  function addSectionTitle(title) {
-    checkPage(12);
+  /* ── Blue section header bar ── */
+  function addSection(title) {
+    checkPage(14);
+    y += 2;
     doc.setFillColor(44, 95, 138);
     doc.rect(margin, y, cw, 7, 'F');
     doc.setTextColor(255, 255, 255);
@@ -1600,159 +1597,355 @@ function generatePDF() {
     y += 10;
   }
 
-  function addFieldPair(label, value) {
-    checkPage(7);
+  /* ── Light subsection header ── */
+  function addSubsection(title) {
+    checkPage(10);
+    y += 1;
+    doc.setFillColor(232, 240, 247);
+    doc.rect(margin, y, cw, 6, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 95, 138);
+    doc.text(title, margin + 3, y + 4.3);
+    doc.setTextColor(0, 0, 0);
+    y += 8;
+  }
+
+  /* ── Single field: label + value ── */
+  function addField(label, value, opts) {
+    if (!opts) opts = {};
+    const v = String(value || '').trim();
+    if (!v && !opts.required) return;
+    checkPage(6);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(85, 85, 85);
-    doc.text(label + ':', margin, y);
+    doc.text(label, margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(26, 26, 26);
     doc.setFontSize(10);
-    doc.text(String(value || ''), margin + 50, y);
+    const labelW = opts.labelWidth || 52;
+    doc.text(v || (opts.required ? '________' : ''), margin + labelW, y);
     y += 6;
   }
 
-  function addFieldRow(pairs) {
-    checkPage(7);
-    const colW = cw / pairs.length;
-    pairs.forEach((p, i) => {
-      const x = margin + i * colW;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(85, 85, 85);
-      doc.text(p[0] + ':', x, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
-      doc.text(String(p[1] || ''), x + 35, y);
+  /* ── Two fields side by side ── */
+  function addFieldRow2(label1, val1, label2, val2, opts) {
+    if (!opts) opts = {};
+    const v1 = String(val1 || '').trim();
+    const v2 = String(val2 || '').trim();
+    if (!v1 && !v2 && !opts.required) return;
+    checkPage(6);
+    const halfW = cw / 2;
+    // Left field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label1, margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v1 || (opts.required ? '________' : ''), margin + 42, y);
+    // Right field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label2, margin + halfW, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + 42, y);
+    y += 6;
+  }
+
+  /* ── Table with headers and rows ── */
+  function addTable(headers, rows, colWidths) {
+    if (!rows || rows.length === 0) return;
+    checkPage(14);
+    const totalW = colWidths.reduce((a, b) => a + b, 0);
+    // Header row
+    doc.setFillColor(44, 95, 138);
+    doc.rect(margin, y, totalW, 6, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    let x = margin;
+    headers.forEach((h, i) => {
+      doc.text(h, x + 2, y + 4);
+      x += colWidths[i];
     });
     y += 6;
+    doc.setTextColor(26, 26, 26);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    // Data rows
+    rows.forEach((row, ri) => {
+      checkPage(6);
+      if (ri % 2 === 1) {
+        doc.setFillColor(245, 247, 250);
+        doc.rect(margin, y - 1, totalW, 5.5, 'F');
+      }
+      x = margin;
+      row.forEach((cell, ci) => {
+        const txt = String(cell || '');
+        doc.text(txt.substring(0, Math.floor(colWidths[ci] / 1.8)), x + 2, y + 3);
+        x += colWidths[ci];
+      });
+      y += 5.5;
+    });
+    y += 2;
   }
 
+  /* ── Screening questions (only Yes answers) ── */
+  function addScreeningYes() {
+    const items = [];
+    document.querySelectorAll('.yn-row').forEach(row => {
+      const radios = row.querySelectorAll('input[type="radio"]');
+      if (radios.length) {
+        const checked = row.querySelector('input[type="radio"]:checked');
+        if (checked && checked.value === 'yes') {
+          const textEl = row.querySelector('.yn-text');
+          if (textEl) items.push(textEl.textContent.trim());
+        }
+      }
+    });
+    if (items.length === 0) return;
+    addSection('Screening Questions — Items Answered Yes');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    items.forEach(item => {
+      checkPage(8);
+      const lines = doc.splitTextToSize('• ' + item, cw - 6);
+      lines.forEach(line => {
+        doc.text(line, margin + 3, y);
+        y += 4.5;
+      });
+      y += 1;
+    });
+  }
+
+  /* ── Currency display helper ── */
+  function fmtCur(val) {
+    const v = String(val || '').replace(/,/g, '').trim();
+    if (!v) return '';
+    const n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  /* ── Format raw select/radio values ── */
+  function fmtLabel(val) {
+    if (!val) return '';
+    const map = {
+      'single': 'Single', 'married': 'Married', 'separated': 'Separated',
+      'surviving_spouse': 'Surviving Spouse', 'rdp': 'Registered Domestic Partnership',
+      'full_year': 'Full-Year Resident', 'part_year': 'Part-Year Resident',
+      'nonresident': 'Nonresident', 'own': 'Own', 'rent': 'Rent',
+      'scorp': 'S Corporation', 'ccorp': 'C Corporation',
+      'partnership': 'Partnership', 'llc': 'LLC',
+      'estate': 'Estate', 'trust': 'Trust',
+      'simple': 'Simple Trust', 'complex': 'Complex Trust',
+      'grantor': 'Grantor Trust', 'other': 'Other',
+      'cash': 'Cash', 'accrual': 'Accrual', 'other_method': 'Other',
+      'yes': 'Yes', 'no': 'No'
+    };
+    return map[val] || val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  /* ── Value getters ── */
   function getVal(name) {
-    const el = form.querySelector(`[name="${name}"]`);
+    const el = form.querySelector('[name="' + name + '"]');
     return el ? el.value : '';
   }
 
   function getRadio(name) {
-    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    const checked = form.querySelector('input[name="' + name + '"]:checked');
     return checked ? checked.value : '';
   }
 
-  // Build PDF
+  function getCur(name) {
+    return fmtCur(getVal(name));
+  }
+
+  /* ── Signature block ── */
+  function addSignature(nameField, dateField, titleField) {
+    checkPage(20);
+    addSection('Certification & Signature');
+    addField('Signature', getVal(nameField || 'sig_name'), { required: true });
+    if (titleField) addField('Title', getVal(titleField));
+    addField('Date', getVal(dateField || 'sig_date') || new Date().toLocaleDateString(), { required: true });
+  }
+
+  // Legacy aliases for backward compatibility
+  function addSectionTitle(t) { addSection(t); }
+  function addFieldPair(l, v) { addField(l, v); }
+
   addHeader();
 
-  // Personal Info
-  addSectionTitle('Taxpayer Information');
-  addFieldRow([['Name', getVal('tp_first_name') + ' ' + getVal('tp_mi') + ' ' + getVal('tp_last_name')], ['Tax ID', getVal('tp_ssn')]]);
-  addFieldRow([['Email', getVal('tp_email')], ['DOB', getVal('tp_dob')]]);
-  addFieldRow([['Occupation', getVal('tp_occupation')], ['New Client', getRadio('tp_new_client')]]);
-  addFieldPair('Address', getVal('tp_address') + ', ' + getVal('tp_city') + ', ' + getVal('tp_state') + ' ' + getVal('tp_zip'));
-  addFieldRow([['Primary Phone', getVal('tp_phone1')], ['Secondary Phone', getVal('tp_phone2')]]);
-  addFieldRow([['Driver License', getVal('tp_dl_no') + ' ' + getVal('tp_dl_state')], ['DL Exp', getVal('tp_dl_exp')]]);
-  y += 3;
+  /* ── Taxpayer Information ── */
+  addSection('Taxpayer Information');
+  const tpName = [getVal('tp_first_name'), getVal('tp_mi'), getVal('tp_last_name')].filter(Boolean).join(' ');
+  addFieldRow2('Name', tpName, 'Tax ID', getVal('tp_ssn'), { required: true });
+  addFieldRow2('Email', getVal('tp_email'), 'Date of Birth', getVal('tp_dob'), { required: true });
+  addFieldRow2('Occupation', getVal('tp_occupation'), 'New Client?', fmtLabel(getRadio('tp_new_client')));
+  const addr = getVal('tp_address');
+  const addrLine = [getVal('tp_city'), getVal('tp_state'), getVal('tp_zip')].filter(Boolean).join(', ');
+  addField('Address', addr + (addrLine ? ', ' + addrLine : ''), { required: true });
+  addFieldRow2('Primary Phone', getVal('tp_phone1'), 'Secondary Phone', getVal('tp_phone2'));
+  addFieldRow2('Driver License #', getVal('tp_dl'), 'DL Exp. Date', getVal('tp_dl_exp'));
 
-  // Marital status
-  addFieldPair('Marital Status', getRadio('marital_status'));
+  /* ── Marital Status & Family ── */
+  addSection('Marital Status & Family');
+  addField('Marital Status', fmtLabel(getRadio('marital_status')), { required: true });
 
-  // Spouse (if applicable)
-  const ms = getRadio('marital_status');
-  if (['married', 'surviving_spouse', 'rdp'].includes(ms)) {
-    addSectionTitle('Spouse Information');
-    addFieldRow([['Name', getVal('sp_first_name') + ' ' + getVal('sp_mi') + ' ' + getVal('sp_last_name')], ['Tax ID', getVal('sp_ssn')]]);
-    addFieldRow([['Email', getVal('sp_email')], ['DOB', getVal('sp_dob')]]);
-    addFieldRow([['Occupation', getVal('sp_occupation')], ['Phone', getVal('sp_phone1')]]);
-    y += 3;
+  /* ── Spouse Information (conditional) ── */
+  const spouseSec = document.getElementById('sec-spouse');
+  if (spouseSec && spouseSec.style.display !== 'none') {
+    addSection('Spouse Information');
+    const spName = [getVal('sp_first_name'), getVal('sp_mi'), getVal('sp_last_name')].filter(Boolean).join(' ');
+    addFieldRow2('Name', spName, 'SSN', getVal('sp_ssn'), { required: true });
+    addFieldRow2('Email', getVal('sp_email'), 'Date of Birth', getVal('sp_dob'));
+    addFieldRow2('Occupation', getVal('sp_occupation'), 'Phone', getVal('sp_phone'));
+    addFieldRow2('Driver License #', getVal('sp_dl'), 'DL Exp. Date', getVal('sp_dl_exp'));
   }
 
-  // Screening questions - collect Yes answers
-  addSectionTitle('Screening Questions - Items Answered Yes');
-  const ynRows = form.querySelectorAll('.yn-row');
-  let hasYes = false;
-  ynRows.forEach(row => {
-    const radio = row.querySelector('input[type="radio"]:checked');
-    if (radio && radio.value === 'yes') {
-      const text = row.querySelector('.yn-text');
-      if (text) {
-        checkPage(7);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        const lines = doc.splitTextToSize('- ' + text.textContent.trim(), cw);
-        doc.text(lines, margin, y);
-        y += lines.length * 4.5;
-        hasYes = true;
-      }
-    }
+  /* ── Dependent Children ── */
+  const depRows = [];
+  document.querySelectorAll('#dep-table tbody tr').forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 7) return;
+    const name = cells[0]?.querySelector('input')?.value || '';
+    const ssn = cells[1]?.querySelector('input')?.value || '';
+    const pin = cells[2]?.querySelector('input')?.value || '';
+    const dob = cells[3]?.querySelector('input')?.value || '';
+    const months = cells[4]?.querySelector('input')?.value || '';
+    const rel = cells[5]?.querySelector('input')?.value || '';
+    const college = cells[6]?.querySelector('select')?.value || '';
+    if (name) depRows.push([name, ssn, dob, months, rel, college ? fmtLabel(college) : '']);
   });
-  if (!hasYes) {
-    doc.setFontSize(9);
-    doc.text('No items answered Yes.', margin, y);
-    y += 6;
+  if (depRows.length) {
+    addSection('Dependent Children');
+    addTable(['Name', 'Tax ID', 'DOB', 'Months Home', 'Relationship', 'College?'],
+             depRows, [40, 30, 25, 20, 25, 20]);
+    const unearned = getRadio('dep_unearned');
+    const disability = getRadio('dep_disability');
+    const otherClaim = getRadio('dep_other_claim');
+    if (unearned) addField('Unearned Income >= $1,350?', fmtLabel(unearned));
+    if (disability) addField('Child with Disability?', fmtLabel(disability));
+    if (otherClaim) addField('Other Taxpayer Claiming Child?', fmtLabel(otherClaim));
   }
 
-  // Visible conditional sections - collect filled data
-  const visibleSections = form.querySelectorAll('.conditional');
-  visibleSections.forEach(section => {
-    if (section.style.display === 'none') return;
+  /* ── Other Dependents ── */
+  const otherDepRows = [];
+  document.querySelectorAll('#other-dep-table tbody tr').forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 7) return;
+    const name = cells[0]?.querySelector('input')?.value || '';
+    const ssn = cells[1]?.querySelector('input')?.value || '';
+    const dob = cells[3]?.querySelector('input')?.value || '';
+    const months = cells[4]?.querySelector('input')?.value || '';
+    const rel = cells[5]?.querySelector('input')?.value || '';
+    if (name) otherDepRows.push([name, ssn, dob, months, rel]);
+  });
+  if (otherDepRows.length) {
+    addSection('Other Dependents');
+    addTable(['Name', 'Tax ID', 'DOB', 'Months Home', 'Relationship'],
+             otherDepRows, [40, 30, 25, 25, 35]);
+  }
+
+  /* ── Bank Information ── */
+  const bankName = getVal('bank_name');
+  const bankRouting = getVal('bank_routing');
+  const bankAcct = getVal('bank_account');
+  if (bankName || bankRouting || bankAcct) {
+    addSection('Bank Information');
+    addField('Bank Name', bankName);
+    addFieldRow2('Routing Number', bankRouting, 'Account Number', bankAcct);
+    addField('Account Type', fmtLabel(getRadio('bank_type')));
+  }
+
+  /* ── Screening Questions ── */
+  addScreeningYes();
+
+  /* ── Conditional Sections (Income, Sales, Deductions, Adjustments, Schedule C, Schedule E) ── */
+  const conditionalSections = [
+    'sec-income', 'sec-sales', 'sec-deductions', 'sec-adjustments',
+    'sec-schedule-c', 'sec-schedule-e'
+  ];
+  conditionalSections.forEach(secId => {
+    const section = document.getElementById(secId);
+    if (!section || section.style.display === 'none') return;
+
     const title = section.querySelector('.section-header h2');
-    if (title) {
-      checkPage(14);
-      addSectionTitle(title.textContent);
-    }
+    if (title) addSection(title.textContent);
+
     // Collect all filled fields in this section
-    const fields = section.querySelectorAll('input, select, textarea');
-    fields.forEach(f => {
-      if (f.type === 'radio' || f.type === 'hidden') return;
-      if (f.value && f.value.trim()) {
-        const label = f.closest('.field, .expense-item, td');
-        const labelEl = label ? label.querySelector('label') : null;
-        const labelText = labelEl ? labelEl.textContent : f.name;
-        checkPage(7);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(85, 85, 85);
-        const lt = doc.splitTextToSize(labelText + ':', cw * 0.4);
-        doc.text(lt, margin, y);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(9);
-        doc.text(String(f.value), margin + cw * 0.42, y);
-        y += Math.max(lt.length * 4, 5);
-      }
+    const inputs = section.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]), select, textarea');
+    inputs.forEach(el => {
+      if (!el.value || !el.value.trim()) return;
+      if (el.closest('.btn-add') || el.closest('.btn-remove')) return;
+      const label = el.closest('.field')?.querySelector('label')?.textContent
+                 || el.closest('.expense-item')?.querySelector('label')?.textContent
+                 || el.name.replace(/_/g, ' ');
+      const val = el.classList.contains('currency-input') ? fmtCur(el.value) : el.value;
+      addField(label, val);
+    });
+
+    // Collect radio groups in this section
+    const radioNames = new Set();
+    section.querySelectorAll('input[type="radio"]:checked').forEach(r => {
+      if (radioNames.has(r.name)) return;
+      radioNames.add(r.name);
+      const label = r.closest('.field')?.querySelector('label:first-child')?.textContent
+                 || r.name.replace(/_/g, ' ');
+      addField(label, fmtLabel(r.value));
     });
   });
 
-  // State Info
-  addSectionTitle('State Information');
-  addFieldRow([['Residency', getRadio('residency_status')], ['States', getVal('states_of_residence')]]);
-  addFieldRow([['Rent/Own', getRadio('rent_own')], ['Rent Paid', getVal('total_rent')]]);
-
-  // Estimated payments if visible
+  /* ── Estimated Tax Payments ── */
   const estSec = document.getElementById('sec-estimated');
   if (estSec && estSec.style.display !== 'none') {
-    addSectionTitle('Estimated Tax Payments - Tax Year 2025');
-    ['est_1','est_2','est_3','est_4'].forEach((prefix, i) => {
-      const labels = ['First','Second','Third','Fourth'];
-      addFieldRow([
-        [labels[i] + ' - Federal', getVal(prefix + '_fed')],
-        [labels[i] + ' - State', getVal(prefix + '_state')]
-      ]);
+    addSection('Estimated Tax Payments — Tax Year 2025');
+    const fedFields = [
+      ['Federal Q1', 'est_fed_q1'], ['Federal Q2', 'est_fed_q2'],
+      ['Federal Q3', 'est_fed_q3'], ['Federal Q4', 'est_fed_q4'],
+    ];
+    fedFields.forEach(([lbl, name]) => {
+      const v = getVal(name);
+      if (v) addField(lbl, fmtCur(v));
     });
-    addFieldPair('2024 Overpayment Applied', getVal('est_prior_fed') + ' (Fed) / ' + getVal('est_prior_state') + ' (State)');
-    y += 3;
+    const stateFields = [
+      ['State Q1', 'est_state_q1'], ['State Q2', 'est_state_q2'],
+      ['State Q3', 'est_state_q3'], ['State Q4', 'est_state_q4'],
+    ];
+    stateFields.forEach(([lbl, name]) => {
+      const v = getVal(name);
+      if (v) addField(lbl, fmtCur(v));
+    });
+    const priorOver = getVal('est_prior_overpayment');
+    if (priorOver) addField('Prior Year Overpayment Applied', fmtCur(priorOver));
   }
 
-  // Signature
-  addSectionTitle('Signatures');
-  addFieldPair('Taxpayer Signature', getVal('tp_signature'));
-  addFieldPair('Date', new Date().toLocaleDateString());
-  if (['married','surviving_spouse','rdp'].includes(ms)) {
-    addFieldPair('Spouse Signature', getVal('sp_signature'));
-    addFieldPair('Date', new Date().toLocaleDateString());
+  /* ── State Information ── */
+  addSection('State Information');
+  addFieldRow2('Residency Status', fmtLabel(getRadio('state_residency')),
+               'State(s)', getVal('state_states'), { required: true });
+  addFieldRow2('Rent or Own?', fmtLabel(getRadio('state_rent_own')),
+               'Rent Paid', getCur('state_rent_paid'));
+
+  /* ── Signatures ── */
+  addSection('Certification & Signature');
+  addField('Taxpayer Signature', getVal('tp_signature'), { required: true });
+  addField('Date', getVal('tp_sig_date') || new Date().toLocaleDateString(), { required: true });
+  if (spouseSec && spouseSec.style.display !== 'none') {
+    const spSig = getVal('sp_signature');
+    if (spSig) {
+      addField('Spouse Signature', spSig);
+      addField('Date', getVal('sp_sig_date') || new Date().toLocaleDateString());
+    }
   }
 
-  // Footer on each page
+    // Footer on each page
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -1762,10 +1955,11 @@ function generatePDF() {
       pw / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
   }
 
-  const fileName = getVal('tp_last_name').toUpperCase() + '_' + getVal('tp_first_name') + '_2025_Organizer.pdf';
+  const lastName = getVal('tp_last_name').toUpperCase() || 'TAXPAYER';
+  const firstName = getVal('tp_first_name') || '';
+  const fileName = lastName + '_' + firstName + '_2025_Organizer.pdf';
   doc.save(fileName);
 
-  // Show confirmation
   document.getElementById('organizer-form').style.display = 'none';
   document.querySelector('.progress-bar').style.display = 'none';
   const conf = document.getElementById('confirmation');

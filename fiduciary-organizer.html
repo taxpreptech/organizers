@@ -826,17 +826,19 @@ function generatePDF() {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
 
   const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
   const margin = 15;
   const cw = pw - 2 * margin;
   let y = margin;
 
   function checkPage(needed) {
-    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
+    if (y + needed > ph - 15) {
       doc.addPage();
       y = margin;
     }
   }
 
+  /* ── Firm header and title ── */
   function addHeader() {
     doc.setFillColor(44, 95, 138);
     doc.rect(0, 0, pw, 22, 'F');
@@ -852,11 +854,13 @@ function generatePDF() {
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('2025 Fiduciary Estate &amp; Trust Tax Organizer', pw / 2, y, { align: 'center' });
-    y += 10;
+    y += 12;
   }
 
-  function addSectionTitle(title) {
-    checkPage(12);
+  /* ── Blue section header bar ── */
+  function addSection(title) {
+    checkPage(14);
+    y += 2;
     doc.setFillColor(44, 95, 138);
     doc.rect(margin, y, cw, 7, 'F');
     doc.setTextColor(255, 255, 255);
@@ -867,168 +871,429 @@ function generatePDF() {
     y += 10;
   }
 
-  function addFieldPair(label, value) {
-    checkPage(7);
+  /* ── Light subsection header ── */
+  function addSubsection(title) {
+    checkPage(10);
+    y += 1;
+    doc.setFillColor(232, 240, 247);
+    doc.rect(margin, y, cw, 6, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 95, 138);
+    doc.text(title, margin + 3, y + 4.3);
+    doc.setTextColor(0, 0, 0);
+    y += 8;
+  }
+
+  /* ── Single field: label + value ── */
+  function addField(label, value, opts) {
+    if (!opts) opts = {};
+    const v = String(value || '').trim();
+    if (!v && !opts.required) return;
+    checkPage(6);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(85, 85, 85);
-    doc.text(label + ':', margin, y);
+    doc.text(label, margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(26, 26, 26);
     doc.setFontSize(10);
-    doc.text(String(value || ''), margin + 50, y);
+    const labelW = opts.labelWidth || 52;
+    doc.text(v || (opts.required ? '________' : ''), margin + labelW, y);
     y += 6;
   }
 
-  function addFieldRow(pairs) {
-    checkPage(7);
-    const colW = cw / pairs.length;
-    pairs.forEach((p, i) => {
-      const x = margin + i * colW;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(85, 85, 85);
-      doc.text(p[0] + ':', x, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
-      doc.text(String(p[1] || ''), x + 35, y);
+  /* ── Two fields side by side ── */
+  function addFieldRow2(label1, val1, label2, val2, opts) {
+    if (!opts) opts = {};
+    const v1 = String(val1 || '').trim();
+    const v2 = String(val2 || '').trim();
+    if (!v1 && !v2 && !opts.required) return;
+    checkPage(6);
+    const halfW = cw / 2;
+    // Left field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label1, margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v1 || (opts.required ? '________' : ''), margin + 42, y);
+    // Right field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label2, margin + halfW, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + 42, y);
+    y += 6;
+  }
+
+  /* ── Table with headers and rows ── */
+  function addTable(headers, rows, colWidths) {
+    if (!rows || rows.length === 0) return;
+    checkPage(14);
+    const totalW = colWidths.reduce((a, b) => a + b, 0);
+    // Header row
+    doc.setFillColor(44, 95, 138);
+    doc.rect(margin, y, totalW, 6, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    let x = margin;
+    headers.forEach((h, i) => {
+      doc.text(h, x + 2, y + 4);
+      x += colWidths[i];
     });
     y += 6;
+    doc.setTextColor(26, 26, 26);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    // Data rows
+    rows.forEach((row, ri) => {
+      checkPage(6);
+      if (ri % 2 === 1) {
+        doc.setFillColor(245, 247, 250);
+        doc.rect(margin, y - 1, totalW, 5.5, 'F');
+      }
+      x = margin;
+      row.forEach((cell, ci) => {
+        const txt = String(cell || '');
+        doc.text(txt.substring(0, Math.floor(colWidths[ci] / 1.8)), x + 2, y + 3);
+        x += colWidths[ci];
+      });
+      y += 5.5;
+    });
+    y += 2;
   }
 
+  /* ── Screening questions (only Yes answers) ── */
+  function addScreeningYes() {
+    const items = [];
+    document.querySelectorAll('.yn-row').forEach(row => {
+      const radios = row.querySelectorAll('input[type="radio"]');
+      if (radios.length) {
+        const checked = row.querySelector('input[type="radio"]:checked');
+        if (checked && checked.value === 'yes') {
+          const textEl = row.querySelector('.yn-text');
+          if (textEl) items.push(textEl.textContent.trim());
+        }
+      }
+    });
+    if (items.length === 0) return;
+    addSection('Screening Questions — Items Answered Yes');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    items.forEach(item => {
+      checkPage(8);
+      const lines = doc.splitTextToSize('• ' + item, cw - 6);
+      lines.forEach(line => {
+        doc.text(line, margin + 3, y);
+        y += 4.5;
+      });
+      y += 1;
+    });
+  }
+
+  /* ── Currency display helper ── */
+  function fmtCur(val) {
+    const v = String(val || '').replace(/,/g, '').trim();
+    if (!v) return '';
+    const n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  /* ── Format raw select/radio values ── */
+  function fmtLabel(val) {
+    if (!val) return '';
+    const map = {
+      'single': 'Single', 'married': 'Married', 'separated': 'Separated',
+      'surviving_spouse': 'Surviving Spouse', 'rdp': 'Registered Domestic Partnership',
+      'full_year': 'Full-Year Resident', 'part_year': 'Part-Year Resident',
+      'nonresident': 'Nonresident', 'own': 'Own', 'rent': 'Rent',
+      'scorp': 'S Corporation', 'ccorp': 'C Corporation',
+      'partnership': 'Partnership', 'llc': 'LLC',
+      'estate': 'Estate', 'trust': 'Trust',
+      'simple': 'Simple Trust', 'complex': 'Complex Trust',
+      'grantor': 'Grantor Trust', 'other': 'Other',
+      'cash': 'Cash', 'accrual': 'Accrual', 'other_method': 'Other',
+      'yes': 'Yes', 'no': 'No'
+    };
+    return map[val] || val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  /* ── Value getters ── */
   function getVal(name) {
-    const el = form.querySelector(`[name="${name}"]`);
+    const el = form.querySelector('[name="' + name + '"]');
     return el ? el.value : '';
   }
 
   function getRadio(name) {
-    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    const checked = form.querySelector('input[name="' + name + '"]:checked');
     return checked ? checked.value : '';
   }
 
+  function getCur(name) {
+    return fmtCur(getVal(name));
+  }
+
+  /* ── Signature block ── */
+  function addSignature(nameField, dateField, titleField) {
+    checkPage(20);
+    addSection('Certification & Signature');
+    addField('Signature', getVal(nameField || 'sig_name'), { required: true });
+    if (titleField) addField('Title', getVal(titleField));
+    addField('Date', getVal(dateField || 'sig_date') || new Date().toLocaleDateString(), { required: true });
+  }
+
+  // Legacy aliases for backward compatibility
+  function addSectionTitle(t) { addSection(t); }
+  function addFieldPair(l, v) { addField(l, v); }
+
   addHeader();
 
-  // ─ Filing Information
-  addSectionTitle('Filing Information');
-  addFieldPair('Entity Name', entityName);
-  addFieldPair('EIN', ein.substring(0, 2) + '-' + ein.substring(2));
-  addFieldPair('Entity Type', entityType.value.toUpperCase());
+  // ─ FILING INFORMATION (required fields always visible)
+  addSection('Filing Information');
+  addField('Entity Name', entityName, { required: true });
+  addFieldRow2('EIN', ein.substring(0, 2) + '-' + ein.substring(2),
+               'Entity Type', fmtLabel(entityType.value), { required: true });
 
-  const address = getVal('address_street') + ', ' + getVal('address_city') + ', ' + getVal('address_state') + ' ' + getVal('address_zip');
-  if (address.length > 10) {
-    addFieldPair('Address', address);
+  const street = getVal('address_street');
+  const city = getVal('address_city');
+  const state = getVal('address_state');
+  const zip = getVal('address_zip');
+  const fullAddr = street + (city ? ', ' + city : '') + (state ? ', ' + state : '') + (zip ? ' ' + zip : '');
+  if (fullAddr.trim().length > 0) {
+    addField('Address', fullAddr, { required: true });
   }
 
-  // ─ Decedent or Trust Information
+  // ─ FIDUCIARY CONTACT INFORMATION
+  addSubsection('Fiduciary Contact Information');
+  addFieldRow2('Name', getVal('fiduciary_name'), 'Title', getVal('fiduciary_title'));
+  if (getVal('fiduciary_email') || getVal('fiduciary_phone')) {
+    addFieldRow2('Email', getVal('fiduciary_email'), 'Phone', getVal('fiduciary_phone'));
+  }
+  if (getVal('fiduciary_mailing_address')) {
+    addField('Mailing Address (if different)', getVal('fiduciary_mailing_address'));
+  }
+
+  // ─ ENTITY-SPECIFIC INFORMATION
   if (entityType.value === 'estate') {
-    const dod = getVal('decedent_dod');
-    const ssn = getVal('decedent_ssn');
-    if (dod) addFieldPair('Decedent Date of Death', dod);
-    if (ssn) addFieldPair('Decedent SSN', ssn);
-  } else {
-    const trustType = form.querySelector('input[name="trust_type"]:checked');
-    if (trustType) {
-      addFieldPair('Trust Type', trustType.value.charAt(0).toUpperCase() + trustType.value.slice(1));
+    addSubsection('Decedent Information');
+    if (getVal('decedent_dod')) {
+      addField('Date of Death', getVal('decedent_dod'));
     }
-    const trustDateCreated = getVal('trust_date_created');
-    if (trustDateCreated) addFieldPair('Trust Created', trustDateCreated);
+    if (getVal('decedent_ssn')) {
+      addField('Social Security Number', getVal('decedent_ssn'));
+    }
+  } else {
+    addSubsection('Trust Information');
+    const trustType = getRadio('trust_type');
+    if (trustType) {
+      addField('Trust Type', fmtLabel(trustType));
+    }
+    if (getVal('trust_type_other')) {
+      addField('Trust Type (Other)', getVal('trust_type_other'));
+    }
+    if (getVal('trust_date_created')) {
+      addField('Date Trust Created', getVal('trust_date_created'));
+    }
   }
 
+  // ─ SECTION 645 ELECTION
   if (form.querySelector('[name="section_645_election"]:checked')) {
-    addFieldPair('Section 645 Election', 'Yes');
+    addField('Section 645 Election', 'Yes');
   }
 
-  // ─ Beneficiaries
+  // ─ SCREENING QUESTIONS (only "Yes" answers)
+  addScreeningYes();
+
+  // ─ BENEFICIARY INFORMATION TABLE
   const beneficiaryTable = document.querySelector('#beneficiary-table tbody');
   if (beneficiaryTable && beneficiaryTable.rows.length > 0) {
-    checkPage(10);
-    addSectionTitle('Beneficiaries');
-    let benefCount = 0;
+    const benefRows = [];
+    let hasData = false;
     beneficiaryTable.querySelectorAll('tr').forEach(row => {
       const cells = row.querySelectorAll('td');
-      if (cells.length >= 2 && cells[0].querySelector('input').value) {
-        benefCount++;
-        const firstName = cells[0].querySelector('input').value;
-        const lastName = cells[1].querySelector('input').value;
-        const share = cells[4].querySelector('input').value;
-        const label = firstName + (lastName ? ' ' + lastName : '') + (share ? ' (' + share + '%)' : '');
-        addFieldPair('Beneficiary ' + benefCount, label);
+      if (cells.length >= 5) {
+        const firstName = cells[0].querySelector('input').value || '';
+        const lastName = cells[1].querySelector('input').value || '';
+        const ssn = cells[2].querySelector('input').value || '';
+        const addr = cells[3].querySelector('input').value || '';
+        const share = cells[4].querySelector('input').value || '';
+        if (firstName || lastName || ssn || addr || share) {
+          hasData = true;
+          benefRows.push([
+            firstName,
+            lastName,
+            ssn,
+            addr,
+            share ? share + '%' : ''
+          ]);
+        }
       }
     });
-  }
-
-  // ─ Income Information
-  const incomeFields = [
-    ['Tax-Exempt Income', 'tax_exempt_amount'],
-    ['Interest/Dividend Income', '(See worksheet)'],
-    ['Capital Gains (Property Sales)', '(See worksheet)'],
-  ];
-
-  let hasIncome = false;
-  incomeFields.forEach(([lbl, nm]) => {
-    if (nm !== '(See worksheet)' && getVal(nm)) {
-      hasIncome = true;
+    if (hasData) {
+      addSection('Beneficiary Information');
+      addTable(
+        ['First Name', 'Last Name', 'SSN', 'Address', 'Share %'],
+        benefRows,
+        [25, 25, 30, 60, 25]
+      );
     }
-  });
-
-  if (getVal('q_interest_dividends') === 'yes' || getVal('q_property_sale') === 'yes') {
-    hasIncome = true;
   }
 
-  if (hasIncome) {
-    addSectionTitle('Income & Distributions');
-    incomeFields.forEach(([lbl, val]) => {
-      if (val === '(See worksheet)' || getVal('q_' + val.toLowerCase().replace(/[^a-z0-9]/g, ''))) {
-        addFieldPair(lbl, val === '(See worksheet)' ? val : ('$' + val));
+  // ─ PROPERTY SALES TABLE
+  const propertySalesTable = document.querySelector('#property-sales-table tbody');
+  if (propertySalesTable && propertySalesTable.rows.length > 0) {
+    const propRows = [];
+    let hasData = false;
+    propertySalesTable.querySelectorAll('tr').forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length >= 5) {
+        const desc = cells[0].querySelector('input').value || '';
+        const datePur = cells[1].querySelector('input').value || '';
+        const pricePur = cells[2].querySelector('input').value || '';
+        const dateSold = cells[3].querySelector('input').value || '';
+        const priceSold = cells[4].querySelector('input').value || '';
+        if (desc || datePur || pricePur || dateSold || priceSold) {
+          hasData = true;
+          propRows.push([
+            desc,
+            datePur,
+            pricePur ? fmtCur(pricePur) : '',
+            dateSold,
+            priceSold ? fmtCur(priceSold) : ''
+          ]);
+        }
       }
     });
-
-    const distribIncome = getVal('distributions_income_required');
-    const distribOther = getVal('distributions_other');
-    if (distribIncome) addFieldPair('Income Distributed', '$' + distribIncome);
-    if (distribOther) addFieldPair('Other Distributions', '$' + distribOther);
+    if (hasData) {
+      addSection('Property Sales Worksheet');
+      addTable(
+        ['Description', 'Purchase Date', 'Purchase Price', 'Sale Date', 'Sale Price'],
+        propRows,
+        [45, 25, 35, 25, 35]
+      );
+    }
   }
 
-  // ─ Key Expenses
-  const expenseLabels = [
-    ['Fiduciary Fees', 'exp_fiduciary_fees'],
-    ['Attorney Fees', 'exp_attorney_fees'],
-    ['Accounting Fees', 'exp_accounting_fees'],
-    ['Tax Preparer', 'exp_tax_preparer_fees'],
-    ['Investment Advisory', 'exp_investment_advisory'],
+  // ─ INTEREST & DIVIDEND INFORMATION
+  const intDivTable = document.querySelector('#interest-dividend-table tbody');
+  if (intDivTable && intDivTable.rows.length > 0) {
+    const intDivRows = [];
+    let hasData = false;
+    intDivTable.querySelectorAll('tr').forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length >= 4) {
+        const bankName = cells[0].querySelector('input').value || '';
+        const interest = cells[1].querySelector('input').value || '';
+        const invEntity = cells[2].querySelector('input').value || '';
+        const dividend = cells[3].querySelector('input').value || '';
+        if (bankName || interest || invEntity || dividend) {
+          hasData = true;
+          intDivRows.push([
+            bankName,
+            interest ? fmtCur(interest) : '',
+            invEntity,
+            dividend ? fmtCur(dividend) : ''
+          ]);
+        }
+      }
+    });
+    if (hasData) {
+      addSection('Interest & Dividend Income Worksheet');
+      addTable(
+        ['Bank/Payer Name', 'Interest Received', 'Investment Entity', 'Dividends Received'],
+        intDivRows,
+        [50, 30, 50, 30]
+      );
+    }
+  }
+
+  // ─ FOREIGN ACCOUNT & NOMINEE INFO
+  if (getVal('foreign_account') === 'yes' || form.querySelector('[name="nominee_interest"]:checked')) {
+    addSubsection('Foreign Account & Nominee Questions');
+    if (getVal('foreign_account') === 'yes') {
+      addField('Foreign Financial Account', 'Yes');
+      if (getVal('foreign_account_max_value')) {
+        addField('Maximum Value During Year', getCur('foreign_account_max_value'));
+      }
+    }
+    if (form.querySelector('[name="nominee_interest"]:checked')) {
+      addField('Nominee Interest Account', 'Yes');
+    }
+  }
+
+  // ─ DISTRIBUTIONS SUMMARY
+  if (getVal('distributions_income_required') || getVal('distributions_other') || getVal('distributions_notes')) {
+    addSubsection('Distributions Summary');
+    if (getVal('distributions_income_required')) {
+      addField('Income Required to Be Distributed', getCur('distributions_income_required'));
+    }
+    if (getVal('distributions_other')) {
+      addField('Other Amounts Paid/Credited/Required', getCur('distributions_other'));
+    }
+    if (getVal('distributions_notes')) {
+      addField('Additional Distribution Information', getVal('distributions_notes'));
+    }
+  }
+
+  // ─ DEDUCTIBLE EXPENSES
+  const allExpenses = [
+    ['Fiduciary fees', 'exp_fiduciary_fees'],
+    ['Attorney fees', 'exp_attorney_fees'],
+    ['Accounting fees', 'exp_accounting_fees'],
+    ['Tax preparer fees', 'exp_tax_preparer_fees'],
+    ['Expenses maintaining property', 'exp_property_maintenance'],
+    ['Qualified residence interest', 'exp_qualified_residence_interest'],
+    ['Investment interest', 'exp_investment_interest'],
+    ['Investment advisory fees', 'exp_investment_advisory'],
+    ['Subscriptions to investment magazines', 'exp_investment_subscriptions'],
+    ['Safe deposit box', 'exp_safe_deposit_box'],
+    ['Amounts set aside for charitable purposes', 'exp_charitable_setaside'],
+    ['Wages (fiduciary staff)', 'exp_wages'],
+    ['Cell phone (for business)', 'exp_cell_phone'],
+    ['Mortgage interest', 'exp_mortgage_interest'],
+    ['Other interest', 'exp_other_interest'],
+    ['Telephone', 'exp_telephone'],
+    ['Legal and professional services', 'exp_legal_professional'],
+    ['Professional continuing education', 'exp_continuing_education'],
+    ['Office expense', 'exp_office_expense'],
+    ['Internet service', 'exp_internet'],
+    ['Pension and profit sharing plans', 'exp_pension_profit_sharing'],
+    ['Parking and tolls', 'exp_parking_tolls'],
+    ['Rent/lease of vehicles or machinery', 'exp_rent_vehicles'],
+    ['Rent/lease office or leasehold', 'exp_rent_office'],
+    ['Repairs and maintenance', 'exp_repairs_maintenance'],
+    ['Other expenses 1', 'exp_other_1'],
+    ['Other expenses 2', 'exp_other_2'],
+    ['Other expenses 3', 'exp_other_3'],
   ];
 
   let hasExpenses = false;
-  const expenses = [];
-  expenseLabels.forEach(([lbl, nm]) => {
-    const val = getVal(nm);
+  const expData = [];
+  allExpenses.forEach(([lbl, nm]) => {
+    const val = getCur(nm);
     if (val) {
       hasExpenses = true;
-      expenses.push([lbl, '$' + val]);
+      expData.push([lbl, val]);
     }
   });
 
   if (hasExpenses) {
-    checkPage(12);
-    addSectionTitle('Key Expenses');
-    expenses.forEach(exp => addFieldPair(exp[0], exp[1]));
+    addSection('Deductible Expenses');
+    expData.forEach(exp => {
+      addField(exp[0], exp[1]);
+    });
   }
 
-  // ─ Signature
-  checkPage(18);
-  y += 10;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Fiduciary Signature Block', margin, y);
-  y += 10;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Fiduciary: ' + sigName, margin, y);
-  y += 6;
-  doc.text('Title: ' + getVal('sig_title'), margin, y);
-  y += 6;
-  doc.text('Date: ' + getVal('sig_date'), margin, y);
+  // ─ SIGNATURE BLOCK
+  addSignature('sig_name', 'sig_date', 'sig_title');
 
     // Footer on each page
   const pageCount = doc.internal.getNumberOfPages();

@@ -845,17 +845,19 @@ function generatePDF() {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
 
   const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
   const margin = 15;
   const cw = pw - 2 * margin;
   let y = margin;
 
   function checkPage(needed) {
-    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
+    if (y + needed > ph - 15) {
       doc.addPage();
       y = margin;
     }
   }
 
+  /* ── Firm header and title ── */
   function addHeader() {
     doc.setFillColor(44, 95, 138);
     doc.rect(0, 0, pw, 22, 'F');
@@ -871,11 +873,13 @@ function generatePDF() {
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text((getVal('tax_year') ? getVal('tax_year') + ' ' : '') + 'Rental Property Organizer (Schedule E)', pw / 2, y, { align: 'center' });
-    y += 10;
+    y += 12;
   }
 
-  function addSectionTitle(title) {
-    checkPage(12);
+  /* ── Blue section header bar ── */
+  function addSection(title) {
+    checkPage(14);
+    y += 2;
     doc.setFillColor(44, 95, 138);
     doc.rect(margin, y, cw, 7, 'F');
     doc.setTextColor(255, 255, 255);
@@ -886,217 +890,416 @@ function generatePDF() {
     y += 10;
   }
 
-  function addFieldPair(label, value) {
-    checkPage(7);
+  /* ── Light subsection header ── */
+  function addSubsection(title) {
+    checkPage(10);
+    y += 1;
+    doc.setFillColor(232, 240, 247);
+    doc.rect(margin, y, cw, 6, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 95, 138);
+    doc.text(title, margin + 3, y + 4.3);
+    doc.setTextColor(0, 0, 0);
+    y += 8;
+  }
+
+  /* ── Single field: label + value ── */
+  function addField(label, value, opts) {
+    if (!opts) opts = {};
+    const v = String(value || '').trim();
+    if (!v && !opts.required) return;
+    checkPage(6);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(85, 85, 85);
-    doc.text(label + ':', margin, y);
+    doc.text(label, margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(26, 26, 26);
     doc.setFontSize(10);
-    doc.text(String(value || ''), margin + 50, y);
+    const labelW = opts.labelWidth || 52;
+    doc.text(v || (opts.required ? '________' : ''), margin + labelW, y);
     y += 6;
   }
 
-  function addFieldRow(pairs) {
-    checkPage(7);
-    const colW = cw / pairs.length;
-    pairs.forEach((p, i) => {
-      const x = margin + i * colW;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(85, 85, 85);
-      doc.text(p[0] + ':', x, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
-      doc.text(String(p[1] || ''), x + 35, y);
+  /* ── Two fields side by side ── */
+  function addFieldRow2(label1, val1, label2, val2, opts) {
+    if (!opts) opts = {};
+    const v1 = String(val1 || '').trim();
+    const v2 = String(val2 || '').trim();
+    if (!v1 && !v2 && !opts.required) return;
+    checkPage(6);
+    const halfW = cw / 2;
+    // Left field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label1, margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v1 || (opts.required ? '________' : ''), margin + 42, y);
+    // Right field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label2, margin + halfW, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + 42, y);
+    y += 6;
+  }
+
+  /* ── Table with headers and rows ── */
+  function addTable(headers, rows, colWidths) {
+    if (!rows || rows.length === 0) return;
+    checkPage(14);
+    const totalW = colWidths.reduce((a, b) => a + b, 0);
+    // Header row
+    doc.setFillColor(44, 95, 138);
+    doc.rect(margin, y, totalW, 6, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    let x = margin;
+    headers.forEach((h, i) => {
+      doc.text(h, x + 2, y + 4);
+      x += colWidths[i];
     });
     y += 6;
+    doc.setTextColor(26, 26, 26);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    // Data rows
+    rows.forEach((row, ri) => {
+      checkPage(6);
+      if (ri % 2 === 1) {
+        doc.setFillColor(245, 247, 250);
+        doc.rect(margin, y - 1, totalW, 5.5, 'F');
+      }
+      x = margin;
+      row.forEach((cell, ci) => {
+        const txt = String(cell || '');
+        doc.text(txt.substring(0, Math.floor(colWidths[ci] / 1.8)), x + 2, y + 3);
+        x += colWidths[ci];
+      });
+      y += 5.5;
+    });
+    y += 2;
   }
 
+  /* ── Screening questions (only Yes answers) ── */
+  function addScreeningYes() {
+    const items = [];
+    document.querySelectorAll('.yn-row').forEach(row => {
+      const radios = row.querySelectorAll('input[type="radio"]');
+      if (radios.length) {
+        const checked = row.querySelector('input[type="radio"]:checked');
+        if (checked && checked.value === 'yes') {
+          const textEl = row.querySelector('.yn-text');
+          if (textEl) items.push(textEl.textContent.trim());
+        }
+      }
+    });
+    if (items.length === 0) return;
+    addSection('Screening Questions — Items Answered Yes');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    items.forEach(item => {
+      checkPage(8);
+      const lines = doc.splitTextToSize('• ' + item, cw - 6);
+      lines.forEach(line => {
+        doc.text(line, margin + 3, y);
+        y += 4.5;
+      });
+      y += 1;
+    });
+  }
+
+  /* ── Currency display helper ── */
+  function fmtCur(val) {
+    const v = String(val || '').replace(/,/g, '').trim();
+    if (!v) return '';
+    const n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  /* ── Format raw select/radio values ── */
+  function fmtLabel(val) {
+    if (!val) return '';
+    const map = {
+      'single': 'Single', 'married': 'Married', 'separated': 'Separated',
+      'surviving_spouse': 'Surviving Spouse', 'rdp': 'Registered Domestic Partnership',
+      'full_year': 'Full-Year Resident', 'part_year': 'Part-Year Resident',
+      'nonresident': 'Nonresident', 'own': 'Own', 'rent': 'Rent',
+      'scorp': 'S Corporation', 'ccorp': 'C Corporation',
+      'partnership': 'Partnership', 'llc': 'LLC',
+      'estate': 'Estate', 'trust': 'Trust',
+      'simple': 'Simple Trust', 'complex': 'Complex Trust',
+      'grantor': 'Grantor Trust', 'other': 'Other',
+      'cash': 'Cash', 'accrual': 'Accrual', 'other_method': 'Other',
+      'yes': 'Yes', 'no': 'No'
+    };
+    return map[val] || val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  /* ── Value getters ── */
   function getVal(name) {
-    const el = form.querySelector(`[name="${name}"]`);
+    const el = form.querySelector('[name="' + name + '"]');
     return el ? el.value : '';
   }
 
   function getRadio(name) {
-    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    const checked = form.querySelector('input[name="' + name + '"]:checked');
     return checked ? checked.value : '';
   }
 
-  function getVal(name) {
-    const el = form.querySelector(`[name="${name}"]`);
-    return el ? el.value : '';
+  function getCur(name) {
+    return fmtCur(getVal(name));
   }
 
-  function getRadio(name) {
-    const checked = form.querySelector(`input[name="${name}"]:checked`);
-    return checked ? checked.value : '';
+  /* ── Signature block ── */
+  function addSignature(nameField, dateField, titleField) {
+    checkPage(20);
+    addSection('Certification & Signature');
+    addField('Signature', getVal(nameField || 'sig_name'), { required: true });
+    if (titleField) addField('Title', getVal(titleField));
+    addField('Date', getVal(dateField || 'sig_date') || new Date().toLocaleDateString(), { required: true });
   }
+
+  // Legacy aliases for backward compatibility
+  function addSectionTitle(t) { addSection(t); }
+  function addFieldPair(l, v) { addField(l, v); }
 
   addHeader();
 
-  // Property Information
-  addSectionTitle('PROPERTY INFORMATION');
+  /* ═══════════════════════════════════════════════════════════
+     PROPERTY INFORMATION — Required-for-prep section
+     ═════════════════════════════════════════════════════════ */
+  addSection('PROPERTY INFORMATION');
 
+  // Check which properties have addresses (required-for-prep)
   const prop1Addr = getVal('prop1_address');
-  if (prop1Addr) {
-    doc.setFontSize(11);
-    doc.text('Rental Property #1', margin + 3, y);
-    y += 4;
-  }
-  addFieldPair('Address', prop1Addr);
-  addFieldPair('Purchase Date', getVal('prop1_purchase_date'));
-  addFieldPair('Initial Cost', '$' + getVal('prop1_initial_cost'));
-  addFieldPair('Improvements to Date', '$' + getVal('prop1_improvements'));
-
   const prop2Addr = getVal('prop2_address');
-  if (prop2Addr) {
-    doc.setFontSize(11);
-    doc.text('Rental Property #2', margin + 3, y);
-    y += 4;
-  }
-  addFieldPair('Address', prop2Addr);
-  addFieldPair('Purchase Date', getVal('prop2_purchase_date'));
-  addFieldPair('Initial Cost', '$' + getVal('prop2_initial_cost'));
-  addFieldPair('Improvements to Date', '$' + getVal('prop2_improvements'));
-
   const prop3Addr = getVal('prop3_address');
+
+  // Always show addresses for properties that exist, even if blank
+  if (prop1Addr || !prop2Addr && !prop3Addr) {
+    addSubsection('Rental Property #1');
+    addField('Address', prop1Addr, { required: true });
+    addFieldRow2('Purchase Date', getVal('prop1_purchase_date'), 'Initial Cost', getCur('prop1_initial_cost'));
+    addField('Improvements to Date', getCur('prop1_improvements'));
+  } else if (prop1Addr) {
+    addSubsection('Rental Property #1');
+    addField('Address', prop1Addr, { required: true });
+    addFieldRow2('Purchase Date', getVal('prop1_purchase_date'), 'Initial Cost', getCur('prop1_initial_cost'));
+    addField('Improvements to Date', getCur('prop1_improvements'));
+  }
+
+  if (prop2Addr) {
+    addSubsection('Rental Property #2');
+    addField('Address', prop2Addr, { required: true });
+    addFieldRow2('Purchase Date', getVal('prop2_purchase_date'), 'Initial Cost', getCur('prop2_initial_cost'));
+    addField('Improvements to Date', getCur('prop2_improvements'));
+  }
+
   if (prop3Addr) {
-    doc.setFontSize(11);
-    doc.text('Rental Property #3', margin + 3, y);
-    y += 4;
-  }
-  addFieldPair('Address', prop3Addr);
-  addFieldPair('Purchase Date', getVal('prop3_purchase_date'));
-  addFieldPair('Initial Cost', '$' + getVal('prop3_initial_cost'));
-  addFieldPair('Improvements to Date', '$' + getVal('prop3_improvements'));
-
-  addFieldPair('Tax Year', getVal('tax_year'));
-
-  // Rental Income
-  addSectionTitle('RENTAL INCOME');
-  const incomeFields = [
-    ['Rents Received', 'rent_received'],
-    ['Other Rental Income', 'rent_other'],
-  ];
-  incomeFields.forEach(([label, prefix]) => {
-    const v1 = getVal(prefix + '_1');
-    const v2 = getVal(prefix + '_2');
-    const v3 = getVal(prefix + '_3');
-    if (v1 || v2 || v3) {
-      doc.setFontSize(9);
-      doc.text(label + ':', margin + 3, y);
-      y += 3;
-      if (v1) { addFieldPair('  Property #1', '$' + v1); }
-      if (v2) { addFieldPair('  Property #2', '$' + v2); }
-      if (v3) { addFieldPair('  Property #3', '$' + v3); }
-    }
-  });
-
-  // Expenses
-  addSectionTitle('RENTAL EXPENSES');
-  const expenseFields = [
-    ['Advertising', 'exp_advertising'],
-    ['Cleaning & Maintenance', 'exp_cleaning'],
-    ['Commissions', 'exp_commissions'],
-    ['HOA Dues', 'exp_hoa'],
-    ['Insurance', 'exp_insurance'],
-    ['Legal & Professional', 'exp_legal'],
-    ['Management Fees', 'exp_management'],
-    ['Mortgage Interest', 'exp_mortgage'],
-    ['Other Interest', 'exp_other_interest'],
-    ['Repairs', 'exp_repairs'],
-    ['Supplies', 'exp_supplies'],
-    ['Taxes', 'exp_taxes'],
-    ['Utilities', 'exp_utilities'],
-    ['Other 1', 'exp_other1'],
-    ['Other 2', 'exp_other2'],
-  ];
-
-  expenseFields.forEach(([label, prefix]) => {
-    const has1 = getVal(prefix + '_1');
-    const has2 = getVal(prefix + '_2');
-    const has3 = getVal(prefix + '_3');
-    if (has1 || has2 || has3) {
-      doc.setFontSize(9);
-      doc.text(label + ':', margin + 6, y);
-      y += 3;
-      if (has1) { addFieldPair('  Property #1', '$' + has1); }
-      if (has2) { addFieldPair('  Property #2', '$' + has2); }
-      if (has3) { addFieldPair('  Property #3', '$' + has3); }
-    }
-  });
-
-  // Mileage
-  addSectionTitle('MILEAGE');
-  const mile1 = getVal('mileage_1');
-  const mile2 = getVal('mileage_2');
-  const mile3 = getVal('mileage_3');
-  if (mile1 || mile2 || mile3) {
-    if (mile1) addFieldPair('Mileage #1', mile1 + ' miles');
-    if (mile2) addFieldPair('Mileage #2', mile2 + ' miles');
-    if (mile3) addFieldPair('Mileage #3', mile3 + ' miles');
-    addFieldPair('Mileage Evidence?', getRadio('q_mileage_evidence'));
-    if (getRadio('q_mileage_evidence') === 'yes') {
-      addFieldPair('Evidence is Written?', getRadio('q_mileage_written'));
-    }
+    addSubsection('Rental Property #3');
+    addField('Address', prop3Addr, { required: true });
+    addFieldRow2('Purchase Date', getVal('prop3_purchase_date'), 'Initial Cost', getCur('prop3_initial_cost'));
+    addField('Improvements to Date', getCur('prop3_improvements'));
   }
 
-  // Improvements
-  const impRows = document.querySelectorAll('#improvements-table tbody tr');
-  let hasImps = false;
-  impRows.forEach(row => {
-    const desc = row.querySelector('input[type="text"]')?.value || '';
-    const amt = row.querySelector('.currency-input')?.value || '';
-    if (desc || amt) hasImps = true;
+  addField('Tax Year', getVal('tax_year') || '2025', { required: true });
+
+  /* ═══════════════════════════════════════════════════════════
+     RENTAL INCOME — 3-property column display
+     ═════════════════════════════════════════════════════════ */
+  const incomeData = [
+    { label: 'Rents Received', prefix: 'rent_received' },
+    { label: 'Other Rental Income', prefix: 'rent_other' }
+  ];
+
+  let hasIncome = false;
+  incomeData.forEach(item => {
+    const v1 = getVal(item.prefix + '_1');
+    const v2 = getVal(item.prefix + '_2');
+    const v3 = getVal(item.prefix + '_3');
+    if (v1 || v2 || v3) hasIncome = true;
   });
-  if (hasImps) {
-    addSectionTitle('IMPROVEMENTS & PURCHASES');
-    impRows.forEach(row => {
-      const desc = row.querySelector('input[type="text"]')?.value || '';
-      const pis = row.querySelector('input[type="date"]')?.value || '';
-      const prop = row.querySelector('select')?.value || '';
-      const amt = row.querySelector('.currency-input')?.value || '';
-      if (desc || amt) {
-        const propLabel = prop ? 'Rental #' + prop : 'N/A';
-        checkPage(6);
-        doc.setFontSize(9);
-        doc.text(desc + ' | In Service: ' + pis + ' | ' + propLabel + ' | $' + amt, margin + 3, y);
-        y += 5;
+
+  if (hasIncome) {
+    addSection('RENTAL INCOME');
+    incomeData.forEach(item => {
+      const v1 = getVal(item.prefix + '_1');
+      const v2 = getVal(item.prefix + '_2');
+      const v3 = getVal(item.prefix + '_3');
+      if (v1 || v2 || v3) {
+        let displayVal = '';
+        if (prop1Addr && v1) displayVal += 'Prop 1: ' + fmtCur(v1);
+        if (prop2Addr && v2) displayVal += (displayVal ? ' | ' : '') + 'Prop 2: ' + fmtCur(v2);
+        if (prop3Addr && v3) displayVal += (displayVal ? ' | ' : '') + 'Prop 3: ' + fmtCur(v3);
+        if (!displayVal) {
+          if (v1) displayVal += 'Prop 1: ' + fmtCur(v1);
+          if (v2) displayVal += (displayVal ? ' | ' : '') + 'Prop 2: ' + fmtCur(v2);
+          if (v3) displayVal += (displayVal ? ' | ' : '') + 'Prop 3: ' + fmtCur(v3);
+        }
+        addField(item.label, displayVal);
       }
     });
   }
 
-  // Home Office
+  /* ═══════════════════════════════════════════════════════════
+     RENTAL EXPENSES — Dynamic table, only properties with addresses
+     ═════════════════════════════════════════════════════════ */
+  const expenseLabels = [
+    'Advertising', 'Cleaning & Maintenance', 'Commissions', 'HOA Dues',
+    'Insurance', 'Legal & Professional Fees', 'Management Fees',
+    'Mortgage Interest', 'Other Interest', 'Repairs', 'Supplies',
+    'Taxes', 'Utilities', 'Other 1', 'Other 2'
+  ];
+
+  const expensePrefixes = [
+    'exp_advertising', 'exp_cleaning', 'exp_commissions', 'exp_hoa',
+    'exp_insurance', 'exp_legal', 'exp_management',
+    'exp_mortgage', 'exp_other_interest', 'exp_repairs', 'exp_supplies',
+    'exp_taxes', 'exp_utilities', 'exp_other1', 'exp_other2'
+  ];
+
+  let hasExpenses = false;
+  expensePrefixes.forEach(prefix => {
+    if (getVal(prefix + '_1') || getVal(prefix + '_2') || getVal(prefix + '_3')) {
+      hasExpenses = true;
+    }
+  });
+
+  if (hasExpenses) {
+    addSection('RENTAL EXPENSES');
+
+    // Build table headers based on properties with addresses
+    const expHeaders = ['Expense Category'];
+    if (prop1Addr) expHeaders.push('Rental #1');
+    if (prop2Addr) expHeaders.push('Rental #2');
+    if (prop3Addr) expHeaders.push('Rental #3');
+
+    // Build expense rows
+    const expRows = [];
+    expensePrefixes.forEach((prefix, idx) => {
+      const v1 = getVal(prefix + '_1');
+      const v2 = getVal(prefix + '_2');
+      const v3 = getVal(prefix + '_3');
+      // Only include row if at least one property has a value
+      if (v1 || v2 || v3) {
+        const row = [expenseLabels[idx]];
+        if (prop1Addr) row.push(fmtCur(v1));
+        if (prop2Addr) row.push(fmtCur(v2));
+        if (prop3Addr) row.push(fmtCur(v3));
+        expRows.push(row);
+      }
+    });
+
+    if (expRows.length > 0) {
+      const colCount = expHeaders.length;
+      const colWidths = [cw * 0.35].concat(Array(colCount - 1).fill(cw * 0.65 / (colCount - 1)));
+      addTable(expHeaders, expRows, colWidths);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     MILEAGE — With evidence and written log support
+     ═════════════════════════════════════════════════════════ */
+  const mile1 = getVal('mileage_1');
+  const mile2 = getVal('mileage_2');
+  const mile3 = getVal('mileage_3');
+  const mileageEvidence = getRadio('q_mileage_evidence');
+
+  if (mile1 || mile2 || mile3 || mileageEvidence) {
+    addSection('MILEAGE');
+    if (mile1 || mile2 || mile3) {
+      let mileDisplay = '';
+      if (prop1Addr && mile1) mileDisplay += 'Prop 1: ' + mile1 + ' miles';
+      if (prop2Addr && mile2) mileDisplay += (mileDisplay ? ' | ' : '') + 'Prop 2: ' + mile2 + ' miles';
+      if (prop3Addr && mile3) mileDisplay += (mileDisplay ? ' | ' : '') + 'Prop 3: ' + mile3 + ' miles';
+      if (!mileDisplay) {
+        if (mile1) mileDisplay += 'Prop 1: ' + mile1 + ' miles';
+        if (mile2) mileDisplay += (mileDisplay ? ' | ' : '') + 'Prop 2: ' + mile2 + ' miles';
+        if (mile3) mileDisplay += (mileDisplay ? ' | ' : '') + 'Prop 3: ' + mile3 + ' miles';
+      }
+      addField('Business Mileage to and from Rentals', mileDisplay);
+    }
+    if (mileageEvidence) {
+      addField('Do you have evidence to support your mileage?', fmtLabel(mileageEvidence));
+      if (mileageEvidence === 'yes') {
+        const mileageWritten = getRadio('q_mileage_written');
+        if (mileageWritten) {
+          addField('Is the evidence written? (e.g., mileage logs)', fmtLabel(mileageWritten));
+        }
+      }
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     IMPROVEMENTS & PURCHASES — Dynamic table
+     ═════════════════════════════════════════════════════════ */
+  const impRows = document.querySelectorAll('#improvements-table tbody tr');
+  const improvements = [];
+  impRows.forEach(row => {
+    const desc = row.querySelector('input[type="text"]')?.value || '';
+    const pis = row.querySelector('input[type="date"]')?.value || '';
+    const prop = row.querySelector('select')?.value || '';
+    const amt = row.querySelector('.currency-input')?.value || '';
+    if (desc || amt) {
+      improvements.push({ desc, pis, prop, amt });
+    }
+  });
+
+  if (improvements.length > 0) {
+    addSection('IMPROVEMENTS & PURCHASES');
+    const impHeaders = ['Description', 'Placed in Service', 'Property', 'Amount'];
+    const impTableRows = improvements.map(imp => [
+      imp.desc || '',
+      imp.pis || '',
+      imp.prop ? 'Rental #' + imp.prop : '',
+      fmtCur(imp.amt)
+    ]);
+    const impColWidths = [cw * 0.35, cw * 0.20, cw * 0.20, cw * 0.25];
+    addTable(impHeaders, impTableRows, impColWidths);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     HOME OFFICE — Conditional on q_home_office = Yes
+     ═════════════════════════════════════════════════════════ */
   if (getRadio('q_home_office') === 'yes') {
-    addSectionTitle('HOME OFFICE');
-    addFieldPair('Office Sq. Ft.', getVal('ho_office_sqft'));
-    addFieldPair('Home Sq. Ft.', getVal('ho_home_sqft'));
-    addFieldPair('Mortgage/Rent', '$' + getVal('ho_mortgage_rent'));
-    addFieldPair('Insurance', '$' + getVal('ho_insurance'));
-    addFieldPair('Real Estate Taxes', '$' + getVal('ho_taxes'));
-    addFieldPair('Utilities', '$' + getVal('ho_utilities'));
-    addFieldPair('Repairs', '$' + getVal('ho_repairs'));
-    addFieldPair('Other', '$' + getVal('ho_other'));
+    addSection('HOME OFFICE');
+    addFieldRow2('Office Sq. Ft.', getVal('ho_office_sqft'), 'Home Sq. Ft.', getVal('ho_home_sqft'));
+    addFieldRow2('Mortgage/Rent Paid', getCur('ho_mortgage_rent'), 'Home Owner's Insurance', getCur('ho_insurance'));
+    addFieldRow2('Real Estate Taxes', getCur('ho_taxes'), 'Utilities (Gas & Electric)', getCur('ho_utilities'));
+    addFieldRow2('Repairs & Maintenance', getCur('ho_repairs'), 'Other Expenses', getCur('ho_other'));
   }
 
-  // Material Participation
+  /* ═══════════════════════════════════════════════════════════
+     MATERIAL PARTICIPATION — Conditional with proof evidence
+     ═════════════════════════════════════════════════════════ */
   if (getRadio('q_material_participation') === 'yes') {
-    addSectionTitle('MATERIAL PARTICIPATION');
-    addFieldPair('250+ Hours on Rentals?', 'yes');
-    addFieldPair('Can Prove to IRS?', getRadio('q_participation_proof'));
+    addSection('MATERIAL PARTICIPATION');
+    addField('Did you spend at least 250 hours on your rentals?', 'Yes');
+    const proof = getRadio('q_participation_proof');
+    if (proof) {
+      addField('Can you prove it to IRS if requested?', fmtLabel(proof));
+    }
   }
 
-  // Signature
-  addSectionTitle('CERTIFICATION & SIGNATURE');
-  doc.setFontSize(9);
-  doc.text('I certify that I have listed all income and expenses, with documentation on file.', margin + 3, y);
-  y += 6;
-  addFieldPair('Signature', getVal('sig_name'));
-  addFieldPair('Date', getVal('sig_date'));
+  /* ═══════════════════════════════════════════════════════════
+     SCREENING QUESTIONS SUMMARY
+     ═════════════════════════════════════════════════════════ */
+  addScreeningYes();
+
+  /* ═══════════════════════════════════════════════════════════
+     CERTIFICATION & SIGNATURE
+     ═════════════════════════════════════════════════════════ */
+  addSignature('sig_name', 'sig_date');
 
     // Footer on each page
   const pageCount = doc.internal.getNumberOfPages();

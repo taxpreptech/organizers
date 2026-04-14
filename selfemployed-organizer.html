@@ -593,10 +593,8 @@ function addEquipmentRow() {
 
 function generatePDF() {
   const form = document.getElementById('organizer-form');
-  const formData = new FormData(form);
-  const businessName = formData.get('bus_name') || 'Business';
 
-  if (!formData.get('sig_name')) {
+  if (!getVal('sig_name')) {
     alert('Please enter your signature (full legal name) before generating the PDF.');
     return;
   }
@@ -605,17 +603,19 @@ function generatePDF() {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
 
   const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
   const margin = 15;
   const cw = pw - 2 * margin;
   let y = margin;
 
   function checkPage(needed) {
-    if (y + needed > doc.internal.pageSize.getHeight() - margin) {
+    if (y + needed > ph - 15) {
       doc.addPage();
       y = margin;
     }
   }
 
+  /* ── Firm header and title ── */
   function addHeader() {
     doc.setFillColor(44, 95, 138);
     doc.rect(0, 0, pw, 22, 'F');
@@ -631,11 +631,13 @@ function generatePDF() {
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text((getVal('tax_year') ? getVal('tax_year') + ' ' : '') + 'Self-Employed Business Organizer (Schedule C)', pw / 2, y, { align: 'center' });
-    y += 10;
+    y += 12;
   }
 
-  function addSectionTitle(title) {
-    checkPage(12);
+  /* ── Blue section header bar ── */
+  function addSection(title) {
+    checkPage(14);
+    y += 2;
     doc.setFillColor(44, 95, 138);
     doc.rect(margin, y, cw, 7, 'F');
     doc.setTextColor(255, 255, 255);
@@ -646,167 +648,297 @@ function generatePDF() {
     y += 10;
   }
 
-  function addFieldPair(label, value) {
-    checkPage(7);
+  /* ── Light subsection header ── */
+  function addSubsection(title) {
+    checkPage(10);
+    y += 1;
+    doc.setFillColor(232, 240, 247);
+    doc.rect(margin, y, cw, 6, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 95, 138);
+    doc.text(title, margin + 3, y + 4.3);
+    doc.setTextColor(0, 0, 0);
+    y += 8;
+  }
+
+  /* ── Single field: label + value ── */
+  function addField(label, value, opts) {
+    if (!opts) opts = {};
+    const v = String(value || '').trim();
+    if (!v && !opts.required) return;
+    checkPage(6);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(85, 85, 85);
-    doc.text(label + ':', margin, y);
+    doc.text(label, margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(26, 26, 26);
     doc.setFontSize(10);
-    doc.text(String(value || ''), margin + 50, y);
+    const labelW = opts.labelWidth || 52;
+    doc.text(v || (opts.required ? '________' : ''), margin + labelW, y);
     y += 6;
   }
 
-  function addFieldRow(pairs) {
-    checkPage(7);
-    const colW = cw / pairs.length;
-    pairs.forEach((p, i) => {
-      const x = margin + i * colW;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(85, 85, 85);
-      doc.text(p[0] + ':', x, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
-      doc.text(String(p[1] || ''), x + 35, y);
+  /* ── Two fields side by side ── */
+  function addFieldRow2(label1, val1, label2, val2, opts) {
+    if (!opts) opts = {};
+    const v1 = String(val1 || '').trim();
+    const v2 = String(val2 || '').trim();
+    if (!v1 && !v2 && !opts.required) return;
+    checkPage(6);
+    const halfW = cw / 2;
+    // Left field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label1, margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v1 || (opts.required ? '________' : ''), margin + 42, y);
+    // Right field
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(label2, margin + halfW, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + 42, y);
+    y += 6;
+  }
+
+  /* ── Table with headers and rows ── */
+  function addTable(headers, rows, colWidths) {
+    if (!rows || rows.length === 0) return;
+    checkPage(14);
+    const totalW = colWidths.reduce((a, b) => a + b, 0);
+    // Header row
+    doc.setFillColor(44, 95, 138);
+    doc.rect(margin, y, totalW, 6, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    let x = margin;
+    headers.forEach((h, i) => {
+      doc.text(h, x + 2, y + 4);
+      x += colWidths[i];
     });
     y += 6;
+    doc.setTextColor(26, 26, 26);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    // Data rows
+    rows.forEach((row, ri) => {
+      checkPage(6);
+      if (ri % 2 === 1) {
+        doc.setFillColor(245, 247, 250);
+        doc.rect(margin, y - 1, totalW, 5.5, 'F');
+      }
+      x = margin;
+      row.forEach((cell, ci) => {
+        const txt = String(cell || '');
+        doc.text(txt.substring(0, Math.floor(colWidths[ci] / 1.8)), x + 2, y + 3);
+        x += colWidths[ci];
+      });
+      y += 5.5;
+    });
+    y += 2;
   }
 
+  /* ── Screening questions (only Yes answers) ── */
+  function addScreeningYes() {
+    const items = [];
+    document.querySelectorAll('.yn-row').forEach(row => {
+      const radios = row.querySelectorAll('input[type="radio"]');
+      if (radios.length) {
+        const checked = row.querySelector('input[type="radio"]:checked');
+        if (checked && checked.value === 'yes') {
+          const textEl = row.querySelector('.yn-text');
+          if (textEl) items.push(textEl.textContent.trim());
+        }
+      }
+    });
+    if (items.length === 0) return;
+    addSection('Screening Questions — Items Answered Yes');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    items.forEach(item => {
+      checkPage(8);
+      const lines = doc.splitTextToSize('• ' + item, cw - 6);
+      lines.forEach(line => {
+        doc.text(line, margin + 3, y);
+        y += 4.5;
+      });
+      y += 1;
+    });
+  }
+
+  /* ── Currency display helper ── */
+  function fmtCur(val) {
+    const v = String(val || '').replace(/,/g, '').trim();
+    if (!v) return '';
+    const n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  /* ── Format raw select/radio values ── */
+  function fmtLabel(val) {
+    if (!val) return '';
+    const map = {
+      'single': 'Single', 'married': 'Married', 'separated': 'Separated',
+      'surviving_spouse': 'Surviving Spouse', 'rdp': 'Registered Domestic Partnership',
+      'full_year': 'Full-Year Resident', 'part_year': 'Part-Year Resident',
+      'nonresident': 'Nonresident', 'own': 'Own', 'rent': 'Rent',
+      'scorp': 'S Corporation', 'ccorp': 'C Corporation',
+      'partnership': 'Partnership', 'llc': 'LLC',
+      'estate': 'Estate', 'trust': 'Trust',
+      'simple': 'Simple Trust', 'complex': 'Complex Trust',
+      'grantor': 'Grantor Trust', 'other': 'Other',
+      'cash': 'Cash', 'accrual': 'Accrual', 'other_method': 'Other',
+      'yes': 'Yes', 'no': 'No'
+    };
+    return map[val] || val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  /* ── Value getters ── */
   function getVal(name) {
-    const el = form.querySelector(`[name="${name}"]`);
+    const el = form.querySelector('[name="' + name + '"]');
     return el ? el.value : '';
   }
 
   function getRadio(name) {
-    const checked = form.querySelector(`input[name="${name}"]:checked`);
+    const checked = form.querySelector('input[name="' + name + '"]:checked');
     return checked ? checked.value : '';
   }
 
-  function getVal(name) {
-    const el = form.querySelector(`[name="${name}"]`);
-    return el ? el.value : '';
+  function getCur(name) {
+    return fmtCur(getVal(name));
   }
 
-  function getRadio(name) {
-    const checked = form.querySelector(`input[name="${name}"]:checked`);
-    return checked ? checked.value : '';
+  /* ── Signature block ── */
+  function addSignature(nameField, dateField, titleField) {
+    checkPage(20);
+    addSection('Certification & Signature');
+    addField('Signature', getVal(nameField || 'sig_name'), { required: true });
+    if (titleField) addField('Title', getVal(titleField));
+    addField('Date', getVal(dateField || 'sig_date') || new Date().toLocaleDateString(), { required: true });
   }
+
+  // Legacy aliases for backward compatibility
+  function addSectionTitle(t) { addSection(t); }
+  function addFieldPair(l, v) { addField(l, v); }
 
   addHeader();
 
-  // Business Information
-  addSectionTitle('BUSINESS INFORMATION');
-  addFieldPair('Business Name', getVal('bus_name'));
-  addFieldPair('Federal EIN#', getVal('bus_ein'));
-  addFieldPair('Tax Year', getVal('tax_year'));
-  addFieldPair('First Year in Business?', getRadio('q_first_year'));
-  addFieldPair('Made 1099 Payments?', getRadio('q_1099_payments'));
+  /* ── Section: Business Information ── */
+  addSection('Business Information');
+  addField('Client/Business Name', getVal('bus_name'), { required: true });
+  addField('Business Address', getVal('bus_address'));
+  addFieldRow2('Federal EIN#', getVal('bus_ein'), 'Tax Year', getVal('tax_year'), { required: true });
+  addSubsection('Business Status');
+  addFieldRow2('First Year in Business?', fmtLabel(getRadio('q_first_year')),
+               'Made 1099 Payments?', fmtLabel(getRadio('q_1099_payments')));
   if (getRadio('q_1099_payments') === 'yes') {
-    addFieldPair('Filed Required 1099s?', getRadio('q_1099_filed'));
+    addField('Filed Required 1099s?', fmtLabel(getRadio('q_1099_filed')));
   }
 
-  // Income
-  addSectionTitle('INCOME');
-  addFieldPair('Total Gross Business Income', '$' + getVal('income_gross'));
+  /* ── Section: Income ── */
+  addSection('Income');
+  addField('Total Gross Business Income', getCur('income_gross'), { required: true });
+  addField('Retail Business?', fmtLabel(getRadio('q_retail_business')));
 
-  // COGS if applicable
+  /* ── Section: Cost of Goods Sold (conditional) ── */
   if (getRadio('q_retail_business') === 'yes') {
-    addSectionTitle('COST OF GOODS SOLD');
-    addFieldPair('Beginning Inventory', '$' + getVal('cogs_begin_inv'));
-    addFieldPair('Merchandise Purchased', '$' + getVal('cogs_purchases'));
-    addFieldPair('Cost of Labor', '$' + getVal('cogs_labor'));
-    addFieldPair('Materials & Supplies', '$' + getVal('cogs_materials'));
-    addFieldPair('Other Direct Costs', '$' + getVal('cogs_other'));
-    addFieldPair('Ending Inventory', '$' + getVal('cogs_end_inv'));
+    addSection('Cost of Goods Sold');
+    addFieldRow2('Beginning Inventory', getCur('cogs_begin_inv'),
+                 'Purchases for Resale', getCur('cogs_purchases'));
+    addFieldRow2('Cost of Labor', getCur('cogs_labor'),
+                 'Materials & Supplies', getCur('cogs_materials'));
+    addFieldRow2('Other Direct Costs', getCur('cogs_other'),
+                 'Ending Inventory', getCur('cogs_end_inv'));
   }
 
-  // Expenses
-  addSectionTitle('EXPENSES');
+  /* ── Section: Expenses ── */
   const expenseFields = [
-    ['Advertising', 'exp_advertising'],
-    ['Commissions and Fees', 'exp_commissions'],
-    ['Contract Labor', 'exp_contract'],
-    ['Insurance (other)', 'exp_insurance_other'],
-    ['Health Insurance (self)', 'exp_health_self'],
-    ['Health Insurance (employees)', 'exp_health_emp'],
-    ['Mortgage Interest', 'exp_mortgage_int'],
-    ['Other Interest', 'exp_interest_other'],
-    ['Professional Fees', 'exp_prof_fees'],
-    ['Office Expenses', 'exp_office'],
-    ['Rent on Business', 'exp_rent_bus'],
-    ['Equipment Rentals', 'exp_equip_rental'],
-    ['Telephone (% business use)', 'exp_telephone'],
-    ['Repairs & Maintenance', 'exp_repairs'],
-    ['Supplies', 'exp_supplies'],
-    ['Real Estate Taxes', 'exp_re_taxes'],
-    ['Other Taxes (Payroll)', 'exp_payroll_taxes'],
-    ['Travel', 'exp_travel'],
-    ['Meals', 'exp_meals'],
-    ['Utilities', 'exp_utilities'],
-    ['Wages', 'exp_wages'],
-    ['Bank Charges', 'exp_bank_charges'],
-    ['Tools', 'exp_tools'],
-    ['Uniforms', 'exp_uniforms'],
-    ['Licenses/Dues', 'exp_licenses'],
-    ['Other 1', 'exp_other1'],
-    ['Other 2', 'exp_other2'],
-    ['Other 3', 'exp_other3'],
+    ['Advertising', 'exp_advertising'], ['Repairs & Maintenance', 'exp_repairs'],
+    ['Commissions & Fees', 'exp_commissions'], ['Supplies', 'exp_supplies'],
+    ['Contract Labor', 'exp_contract'], ['Real Estate Taxes', 'exp_re_taxes'],
+    ['Insurance (Other)', 'exp_insurance_other'], ['Payroll Taxes', 'exp_payroll_taxes'],
+    ['Health Insurance (Self)', 'exp_health_self'], ['Travel', 'exp_travel'],
+    ['Health Insurance (Employees)', 'exp_health_emp'], ['Meals', 'exp_meals'],
+    ['Mortgage Interest', 'exp_mortgage_int'], ['Utilities', 'exp_utilities'],
+    ['Other Interest', 'exp_interest_other'], ['Wages (W-2s)', 'exp_wages'],
+    ['Professional Fees', 'exp_prof_fees'], ['Bank & CC Charges', 'exp_bank_charges'],
+    ['Office Expenses', 'exp_office'], ['Tools', 'exp_tools'],
+    ['Rent on Business Property', 'exp_rent_bus'], ['Uniforms', 'exp_uniforms'],
+    ['Equipment Rentals', 'exp_equip_rental'], ['Licenses/Dues', 'exp_licenses'],
+    ['Telephone (% Business)', 'exp_telephone'],
+    ['Other 1', 'exp_other1'], ['Other 2', 'exp_other2'], ['Other 3', 'exp_other3'],
   ];
-
-  expenseFields.forEach(([label, name]) => {
-    const val = getVal(name);
-    if (val) addFieldPair(label, '$' + val);
-  });
-
-  // Vehicle
-  addSectionTitle('BUSINESS VEHICLE');
-  addFieldPair('Business Mileage', getVal('vehicle_bus_miles'));
-  addFieldPair('Personal Mileage', getVal('vehicle_pers_miles'));
-  addFieldPair('Mileage Evidence?', getRadio('q_vehicle_evidence'));
-  if (getRadio('q_vehicle_evidence') === 'yes') {
-    addFieldPair('Evidence is Written?', getRadio('q_evidence_written'));
+  const filledExpenses = expenseFields.filter(([l, n]) => getVal(n).trim());
+  if (filledExpenses.length > 0) {
+    addSection('Expenses');
+    // Two-column layout for expenses
+    for (let i = 0; i < filledExpenses.length; i += 2) {
+      const [l1, n1] = filledExpenses[i];
+      if (i + 1 < filledExpenses.length) {
+        const [l2, n2] = filledExpenses[i + 1];
+        addFieldRow2(l1, getCur(n1), l2, getCur(n2));
+      } else {
+        addField(l1, getCur(n1));
+      }
+    }
   }
 
-  // Equipment if applicable
-  const equipRows = document.querySelectorAll('#equipment-table tbody tr');
-  if (equipRows.length > 0) {
-    addSectionTitle('EQUIPMENT PURCHASES');
-    equipRows.forEach(row => {
+  /* ── Section: Business Vehicle ── */
+  const busMiles = getVal('vehicle_bus_miles');
+  const persMiles = getVal('vehicle_pers_miles');
+  const vehEvidence = getRadio('q_vehicle_evidence');
+  if (busMiles || persMiles || vehEvidence) {
+    addSection('Business Vehicle');
+    addFieldRow2('Business Mileage', busMiles, 'Personal Mileage', persMiles);
+    addField('Mileage Evidence?', fmtLabel(vehEvidence));
+    if (vehEvidence === 'yes') {
+      addField('Evidence is Written?', fmtLabel(getRadio('q_evidence_written')));
+    }
+  }
+
+  /* ── Section: Equipment Purchases ── */
+  if (getRadio('q_equipment_purchases') === 'yes') {
+    const equipData = [];
+    document.querySelectorAll('#equipment-table tbody tr').forEach(row => {
       const desc = row.querySelector('input[type="text"]')?.value || '';
       const date = row.querySelector('input[type="date"]')?.value || '';
       const amt = row.querySelector('.currency-input')?.value || '';
-      if (desc || date || amt) {
-        doc.setFontSize(9);
-        doc.text(desc + ' (' + date + '): $' + amt, margin + 3, y);
-        y += 5;
-      }
+      if (desc || amt) equipData.push([desc, date, fmtCur(amt)]);
     });
+    if (equipData.length > 0) {
+      addSection('Equipment Purchases');
+      addTable(['Description', 'Date Purchased', 'Amount'], equipData, [90, 40, 50]);
+    }
   }
 
-  // Home Office if applicable
+  /* ── Section: Home Office ── */
   if (getRadio('q_home_office') === 'yes') {
-    addSectionTitle('HOME OFFICE');
-    addFieldPair('Office Sq. Ft.', getVal('ho_office_sqft'));
-    addFieldPair('Home Sq. Ft.', getVal('ho_home_sqft'));
-    addFieldPair('Mortgage/Rent', '$' + getVal('ho_mortgage_rent'));
-    addFieldPair('Insurance', '$' + getVal('ho_insurance'));
-    addFieldPair('Real Estate Taxes', '$' + getVal('ho_taxes'));
-    addFieldPair('Utilities', '$' + getVal('ho_utilities'));
-    addFieldPair('Repairs', '$' + getVal('ho_repairs'));
-    addFieldPair('Other', '$' + getVal('ho_other'));
+    addSection('Home Office');
+    addFieldRow2('Office Sq. Ft.', getVal('ho_office_sqft'),
+                 'Home Sq. Ft.', getVal('ho_home_sqft'));
+    addFieldRow2('Mortgage/Rent', getCur('ho_mortgage_rent'),
+                 'Insurance', getCur('ho_insurance'));
+    addFieldRow2('Real Estate Taxes', getCur('ho_taxes'),
+                 'Utilities', getCur('ho_utilities'));
+    addFieldRow2('Repairs', getCur('ho_repairs'),
+                 'Other', getCur('ho_other'));
   }
 
-  // Signature
-  addSectionTitle('CERTIFICATION & SIGNATURE');
-  doc.setFontSize(9);
-  doc.text('I certify that I have listed all income and expenses, with documentation on file.', margin + 3, y);
-  y += 6;
-  addFieldPair('Signature', getVal('sig_name'));
-  addFieldPair('Date', getVal('sig_date'));
+  /* ── Screening Questions Summary ── */
+  addScreeningYes();
+
+  /* ── Signature ── */
+  addSignature('sig_name', 'sig_date');
 
     // Footer on each page
   const pageCount = doc.internal.getNumberOfPages();
@@ -819,7 +951,8 @@ function generatePDF() {
   }
 
   const taxYr = getVal('tax_year') || '2025';
-  const fileName = businessName.toUpperCase() + '_' + taxYr + '_ScheduleC_Organizer.pdf';
+  const bName = getVal('bus_name') || 'Business';
+  const fileName = bName.toUpperCase().replace(/\s+/g, '_') + '_' + taxYr + '_ScheduleC_Organizer.pdf';
   doc.save(fileName);
 
   // Show confirmation
