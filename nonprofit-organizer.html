@@ -58,9 +58,13 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: var(--
 
 /* Radio/checkbox groups */
 .radio-group { display: flex; gap: 16px; flex-wrap: wrap; padding: 4px 0; }
-.radio-group label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.radio-group label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.radio-group label input[type="radio"],
+.radio-group label input[type="checkbox"] { margin: 0; flex-shrink: 0; width: 16px; height: 16px; -webkit-appearance: radio; appearance: radio; position: relative; }
+.radio-group label input[type="checkbox"] { -webkit-appearance: checkbox; appearance: checkbox; }
 .checkbox-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
 .checkbox-row label { font-size: 14px; cursor: pointer; }
+.checkbox-row label input[type="checkbox"] { margin: 0; flex-shrink: 0; width: 16px; height: 16px; -webkit-appearance: checkbox; appearance: checkbox; }
 
 /* Yes/No screening questions */
 .yn-group-title { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
@@ -755,8 +759,8 @@ function toggleCollapsible(header) {
 
 // ── Progress tracking ──
 function updateProgress() {
-  const allRequired = document.querySelectorAll('[required]');
-  const filledRequired = Array.from(allRequired).filter(el => {
+  const allRequired = Array.from(document.querySelectorAll('[required]')).filter(el => !el.readOnly);
+  const filledRequired = allRequired.filter(el => {
     if (el.type === 'radio') {
       return document.querySelector(`input[name="${el.name}"]:checked`);
     }
@@ -1230,18 +1234,18 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   
-  // Auto-fill signature date and show timestamp on signing
-  const today = new Date().toISOString().split('T')[0];
-  const sigDate = document.querySelector('[name="sig_date"]');
-  if (sigDate) sigDate.value = today;
+  // Auto-fill signature date only when user starts signing; show timestamp
   const sigInput = document.querySelector('[name="sig_name"]');
   if (sigInput) {
     sigInput.addEventListener('input', function() {
+      const sigDate = document.querySelector('[name="sig_date"]');
       const meta = document.getElementById('sig-meta');
-      if (meta && this.value.trim()) {
-        meta.textContent = 'Signed electronically on ' + new Date().toLocaleString() + ' | This electronic signature has the same legal effect as a handwritten signature.';
-      } else if (meta) {
-        meta.textContent = '';
+      if (this.value.trim()) {
+        if (sigDate && !sigDate.value) sigDate.value = new Date().toISOString().split('T')[0];
+        if (meta) meta.textContent = 'Signed electronically on ' + new Date().toLocaleString() + ' | This electronic signature has the same legal effect as a handwritten signature.';
+      } else {
+        if (sigDate) sigDate.value = '';
+        if (meta) meta.textContent = '';
       }
     });
   }
