@@ -1771,6 +1771,22 @@ function generatePDF() {
     y += 6;
   }
 
+  /* ── Question + short answer (right-aligned answer column) ── */
+  function addQA(question, answer) {
+    if (!answer) return;
+    checkPage(6);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(question, margin, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    // Answer at fixed column (70% of content width) for consistent alignment
+    doc.text(String(answer), margin + cw * 0.55, y);
+    y += 6;
+  }
+
   /* ── Table with headers and rows ── */
   function addTable(headers, rows, colWidths) {
     if (!rows || rows.length === 0) return;
@@ -1949,9 +1965,9 @@ function generatePDF() {
   }
   // Entity-specific info
   if (eType === 'partnership') addField('Partnership Type', fmtLabel(getVal('partnership_type')));
-  if (eType === 'llc') addField('Corporate Tax Election?', fmtLabel(getRadio('llc_corp_election')));
+  if (eType === 'llc') addQA('Corporate Tax Election?', fmtLabel(getRadio('llc_corp_election')));
   if (eType === 'ccorp') {
-    addField('Personal Service Corp?', fmtLabel(getRadio('ccorp_psc')));
+    addQA('Personal Service Corp?', fmtLabel(getRadio('ccorp_psc')));
     addField('Total Assets (EOY)', getCur('ccorp_total_assets'));
   }
 

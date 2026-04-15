@@ -967,6 +967,22 @@ function generatePDF() {
     y += 6;
   }
 
+  /* ── Question + short answer (right-aligned answer column) ── */
+  function addQA(question, answer) {
+    if (!answer) return;
+    checkPage(6);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(question, margin, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    // Answer at fixed column (70% of content width) for consistent alignment
+    doc.text(String(answer), margin + cw * 0.55, y);
+    y += 6;
+  }
+
   /* ── Table with headers and rows ── */
   function addTable(headers, rows, colWidths) {
     if (!rows || rows.length === 0) return;
@@ -1271,11 +1287,11 @@ function generatePDF() {
       addField('Business Mileage to and from Rentals', mileDisplay);
     }
     if (mileageEvidence) {
-      addField('Do you have evidence to support your mileage?', fmtLabel(mileageEvidence));
+      addQA('Do you have evidence to support your mileage?', fmtLabel(mileageEvidence));
       if (mileageEvidence === 'yes') {
         const mileageWritten = getRadio('q_mileage_written');
         if (mileageWritten) {
-          addField('Is the evidence written? (e.g., mileage logs)', fmtLabel(mileageWritten));
+          addQA('Is the evidence written? (e.g., mileage logs)', fmtLabel(mileageWritten));
         }
       }
     }
@@ -1325,10 +1341,10 @@ function generatePDF() {
      ═════════════════════════════════════════════════════════ */
   if (getRadio('q_material_participation') === 'yes') {
     addSection('MATERIAL PARTICIPATION');
-    addField('Did you spend at least 250 hours on your rentals?', 'Yes');
+    addQA('Did you spend at least 250 hours on your rentals?', 'Yes');
     const proof = getRadio('q_participation_proof');
     if (proof) {
-      addField('Can you prove it to IRS if requested?', fmtLabel(proof));
+      addQA('Can you prove it to IRS if requested?', fmtLabel(proof));
     }
   }
 

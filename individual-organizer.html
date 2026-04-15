@@ -1674,6 +1674,22 @@ function generatePDF() {
     y += 6;
   }
 
+  /* ── Question + short answer (right-aligned answer column) ── */
+  function addQA(question, answer) {
+    if (!answer) return;
+    checkPage(6);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(question, margin, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    // Answer at fixed column (70% of content width) for consistent alignment
+    doc.text(String(answer), margin + cw * 0.55, y);
+    y += 6;
+  }
+
   /* ── Table with headers and rows ── */
   function addTable(headers, rows, colWidths) {
     if (!rows || rows.length === 0) return;
@@ -1871,9 +1887,9 @@ function generatePDF() {
     const unearned = getRadio('dep_unearned');
     const disability = getRadio('dep_disability');
     const otherClaim = getRadio('dep_other_claim');
-    if (unearned) addField('Unearned Income >= $1,350?', fmtLabel(unearned));
-    if (disability) addField('Child with Disability?', fmtLabel(disability));
-    if (otherClaim) addField('Other Taxpayer Claiming Child?', fmtLabel(otherClaim));
+    if (unearned) addQA('Unearned Income >= $1,350?', fmtLabel(unearned));
+    if (disability) addQA('Child with Disability?', fmtLabel(disability));
+    if (otherClaim) addQA('Other Taxpayer Claiming Child?', fmtLabel(otherClaim));
   }
 
   /* ── Other Dependents ── */
@@ -1908,20 +1924,18 @@ function generatePDF() {
   /* ── Screening Questions ── */
   addScreeningYes();
 
-  /* ── Conditional Sections (Income, Sales, Deductions, Adjustments, Schedule C, Schedule E) ── */
-  const conditionalSections = [
-    'sec-income', 'sec-sales', 'sec-deductions', 'sec-adjustments',
-    'sec-schedule-c', 'sec-schedule-e'
-  ];
-  conditionalSections.forEach(secId => {
+  /* ── Conditional Sections — handled explicitly for proper formatting ── */
+
+  // Helper: scan a conditional section for filled fields using proper labels
+  function printConditionalSection(secId) {
     const section = document.getElementById(secId);
     if (!section || section.style.display === 'none') return;
 
-    // Pre-scan: check if this section has any filled fields before printing header
+    // Pre-scan for filled fields
     const inputs = section.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]), select, textarea');
     let hasFilled = false;
     inputs.forEach(el => {
-      if (el.value && el.value.trim() && !el.closest('.btn-add') && !el.closest('.btn-remove')) hasFilled = true;
+      if (el.value && el.value.trim() && !el.closest('.btn-add') && !el.closest('.btn-remove') && !el.closest('.dynamic-table')) hasFilled = true;
     });
     section.querySelectorAll('input[type="radio"]:checked').forEach(() => { hasFilled = true; });
     if (!hasFilled) return;
@@ -1929,10 +1943,39 @@ function generatePDF() {
     const title = section.querySelector('.section-header h2');
     if (title) addSection(title.textContent);
 
-    // Collect all filled fields in this section
+    // Dynamic tables → render as addTable
+    section.querySelectorAll('.dynamic-table').forEach(table => {
+      const headers = [];
+      table.querySelectorAll('thead th').forEach(th => {
+        if (th.textContent.trim()) headers.push(th.textContent.trim());
+      });
+      const rows = [];
+      table.querySelectorAll('tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = [];
+        let hasData = false;
+        cells.forEach((cell, i) => {
+          if (i >= headers.length) return;
+          const input = cell.querySelector('input, select');
+          if (!input) return;
+          let val = input.value || '';
+          if (input.classList.contains('currency-input') && val) val = fmtCur(val);
+          else if (input.type === 'date' && val) val = fmtDate(val);
+          if (val) hasData = true;
+          rowData.push(val);
+        });
+        if (hasData) rows.push(rowData);
+      });
+      if (rows.length && headers.length) {
+        const colW = headers.map(() => cw / headers.length);
+        addTable(headers, rows, colW);
+      }
+    });
+
+    // Non-table fields: expense items and regular fields
     inputs.forEach(el => {
       if (!el.value || !el.value.trim()) return;
-      if (el.closest('.btn-add') || el.closest('.btn-remove')) return;
+      if (el.closest('.btn-add') || el.closest('.btn-remove') || el.closest('.dynamic-table')) return;
       const label = el.closest('.field')?.querySelector('label')?.textContent
                  || el.closest('.expense-item')?.querySelector('label')?.textContent
                  || el.name.replace(/_/g, ' ');
@@ -1942,47 +1985,50 @@ function generatePDF() {
       addField(label, val);
     });
 
-    // Collect radio groups in this section
+    // Radio/checkbox groups
     const radioNames = new Set();
     section.querySelectorAll('input[type="radio"]:checked').forEach(r => {
       if (radioNames.has(r.name)) return;
       radioNames.add(r.name);
       const label = r.closest('.field')?.querySelector('label:first-child')?.textContent
                  || r.name.replace(/_/g, ' ');
-      addField(label, fmtLabel(r.value));
+      addQA(label, fmtLabel(r.value));
     });
-  });
+  }
+
+  ['sec-income', 'sec-sales', 'sec-deductions', 'sec-adjustments',
+   'sec-schedule-c', 'sec-schedule-e'].forEach(printConditionalSection);
 
   /* ── Estimated Tax Payments ── */
   const estSec = document.getElementById('sec-estimated');
   if (estSec && estSec.style.display !== 'none') {
     addSection('Estimated Tax Payments — Tax Year 2025');
-    const fedFields = [
-      ['Federal Q1', 'est_fed_q1'], ['Federal Q2', 'est_fed_q2'],
-      ['Federal Q3', 'est_fed_q3'], ['Federal Q4', 'est_fed_q4'],
-    ];
-    fedFields.forEach(([lbl, name]) => {
-      const v = getVal(name);
-      if (v) addField(lbl, fmtCur(v));
+    // Field names from gold-individual.html: est_N_fed, est_N_state
+    const estData = [];
+    ['1', '2', '3', '4'].forEach((q, i) => {
+      const fed = getVal('est_' + q + '_fed');
+      const st = getVal('est_' + q + '_state');
+      if (fed || st) estData.push(['Q' + q, fmtCur(fed), fmtCur(st)]);
     });
-    const stateFields = [
-      ['State Q1', 'est_state_q1'], ['State Q2', 'est_state_q2'],
-      ['State Q3', 'est_state_q3'], ['State Q4', 'est_state_q4'],
-    ];
-    stateFields.forEach(([lbl, name]) => {
-      const v = getVal(name);
-      if (v) addField(lbl, fmtCur(v));
-    });
-    const priorOver = getVal('est_prior_overpayment');
-    if (priorOver) addField('Prior Year Overpayment Applied', fmtCur(priorOver));
+    if (estData.length) {
+      addTable(['Quarter', 'Federal', 'State'], estData, [30, 60, 60]);
+    }
+    const priorFed = getVal('est_prior_fed');
+    const priorSt = getVal('est_prior_state');
+    if (priorFed || priorSt) {
+      addFieldRow2('Prior Overpayment (Federal)', fmtCur(priorFed),
+                   'Prior Overpayment (State)', fmtCur(priorSt));
+    }
   }
 
   /* ── State Information ── */
   addSection('State Information');
-  addFieldRow2('Residency Status', fmtLabel(getRadio('state_residency')),
-               'State(s)', getVal('state_states'), { required: true });
-  addFieldRow2('Rent or Own?', fmtLabel(getRadio('state_rent_own')),
-               'Rent Paid', getCur('state_rent_paid'));
+  addFieldRow2('Residency Status', fmtLabel(getRadio('residency_status')),
+               'School District', getVal('school_district'));
+  addField('States of Residence', getVal('states_of_residence'));
+  addFieldRow2('Rent or Own?', fmtLabel(getRadio('rent_own')),
+               'Total Rent Paid', getCur('total_rent'));
+  if (getRadio('includes_heat')) addQA('Rent Includes Heat?', fmtLabel(getRadio('includes_heat')));
 
   /* ── Signatures ── */
   addSection('Certification & Signature');

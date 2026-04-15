@@ -725,6 +725,22 @@ function generatePDF() {
     y += 6;
   }
 
+  /* ── Question + short answer (right-aligned answer column) ── */
+  function addQA(question, answer) {
+    if (!answer) return;
+    checkPage(6);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(85, 85, 85);
+    doc.text(question, margin, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(10);
+    // Answer at fixed column (70% of content width) for consistent alignment
+    doc.text(String(answer), margin + cw * 0.55, y);
+    y += 6;
+  }
+
   /* ── Table with headers and rows ── */
   function addTable(headers, rows, colWidths) {
     if (!rows || rows.length === 0) return;
@@ -883,13 +899,13 @@ function generatePDF() {
   addFieldRow2('First Year in Business?', fmtLabel(getRadio('q_first_year')),
                'Made 1099 Payments?', fmtLabel(getRadio('q_1099_payments')));
   if (getRadio('q_1099_payments') === 'yes') {
-    addField('Filed Required 1099s?', fmtLabel(getRadio('q_1099_filed')));
+    addQA('Filed Required 1099s?', fmtLabel(getRadio('q_1099_filed')));
   }
 
   /* ── Section: Income ── */
   addSection('Income');
   addField('Total Gross Business Income', getCur('income_gross'), { required: true });
-  addField('Retail Business?', fmtLabel(getRadio('q_retail_business')));
+  addQA('Retail Business?', fmtLabel(getRadio('q_retail_business')));
 
   /* ── Section: Cost of Goods Sold (conditional) ── */
   if (getRadio('q_retail_business') === 'yes') {
@@ -941,9 +957,9 @@ function generatePDF() {
   if (busMiles || persMiles || vehEvidence) {
     addSection('Business Vehicle');
     addFieldRow2('Business Mileage', busMiles, 'Personal Mileage', persMiles);
-    addField('Mileage Evidence?', fmtLabel(vehEvidence));
+    addQA('Mileage Evidence?', fmtLabel(vehEvidence));
     if (vehEvidence === 'yes') {
-      addField('Evidence is Written?', fmtLabel(getRadio('q_evidence_written')));
+      addQA('Evidence is Written?', fmtLabel(getRadio('q_evidence_written')));
     }
   }
 
