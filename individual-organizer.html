@@ -1613,7 +1613,14 @@ function generatePDF() {
     y += 8;
   }
 
-  /* ── Single field: label + value ── */
+  /* ── Measure label width helper ── */
+  function labelEnd(label) {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    return doc.getTextWidth(label) + 3;
+  }
+
+  /* ── Single field: label + value (dynamic width) ── */
   function addField(label, value, opts) {
     if (!opts) opts = {};
     const v = String(value || '').trim();
@@ -1623,15 +1630,16 @@ function generatePDF() {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(85, 85, 85);
     doc.text(label, margin, y);
+    const lw = labelEnd(label);
+    const valueX = margin + Math.max(lw, 42);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(26, 26, 26);
     doc.setFontSize(10);
-    const labelW = opts.labelWidth || 52;
-    doc.text(v || (opts.required ? '________' : ''), margin + labelW, y);
+    doc.text(v || (opts.required ? '________' : ''), valueX, y);
     y += 6;
   }
 
-  /* ── Two fields side by side ── */
+  /* ── Two fields side by side (consistent alignment) ── */
   function addFieldRow2(label1, val1, label2, val2, opts) {
     if (!opts) opts = {};
     const v1 = String(val1 || '').trim();
@@ -1639,25 +1647,29 @@ function generatePDF() {
     if (!v1 && !v2 && !opts.required) return;
     checkPage(6);
     const halfW = cw / 2;
-    // Left field
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(85, 85, 85);
-    doc.text(label1, margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(26, 26, 26);
-    doc.setFontSize(10);
-    doc.text(v1 || (opts.required ? '________' : ''), margin + 42, y);
+    // Left field — only show if it has a value (or required)
+    if (v1 || opts.required) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(85, 85, 85);
+      doc.text(label1, margin, y);
+      const lw1 = labelEnd(label1);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(26, 26, 26);
+      doc.setFontSize(10);
+      doc.text(v1 || (opts.required ? '________' : ''), margin + Math.max(lw1, 42), y);
+    }
     // Right field — only show if it has a value (or required)
     if (v2 || opts.required) {
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(85, 85, 85);
       doc.text(label2, margin + halfW, y);
+      const lw2 = labelEnd(label2);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(26, 26, 26);
       doc.setFontSize(10);
-      doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + 42, y);
+      doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + Math.max(lw2, 42), y);
     }
     y += 6;
   }
@@ -1821,7 +1833,7 @@ function generatePDF() {
   const addrLine = [getVal('tp_city'), getVal('tp_state'), getVal('tp_zip')].filter(Boolean).join(', ');
   addField('Address', addr + (addrLine ? ', ' + addrLine : ''), { required: true });
   addFieldRow2('Primary Phone', getVal('tp_phone1'), 'Secondary Phone', getVal('tp_phone2'));
-  addFieldRow2('Driver License #', getVal('tp_dl'), 'DL Exp. Date', getVal('tp_dl_exp'));
+  addFieldRow2('Driver License #', getVal('tp_dl_no'), 'DL Exp. Date', fmtDate(getVal('tp_dl_exp')));
 
   /* ── Marital Status & Family ── */
   addSection('Marital Status & Family');
@@ -1835,7 +1847,7 @@ function generatePDF() {
     addFieldRow2('Name', spName, 'SSN', getVal('sp_ssn'), { required: true });
     addFieldRow2('Email', getVal('sp_email'), 'Date of Birth', fmtDate(getVal('sp_dob')));
     addFieldRow2('Occupation', getVal('sp_occupation'), 'Phone', getVal('sp_phone'));
-    addFieldRow2('Driver License #', getVal('sp_dl'), 'DL Exp. Date', getVal('sp_dl_exp'));
+    addFieldRow2('Driver License #', getVal('sp_dl_no'), 'DL Exp. Date', fmtDate(getVal('sp_dl_exp')));
   }
 
   /* ── Dependent Children ── */
@@ -1924,7 +1936,9 @@ function generatePDF() {
       const label = el.closest('.field')?.querySelector('label')?.textContent
                  || el.closest('.expense-item')?.querySelector('label')?.textContent
                  || el.name.replace(/_/g, ' ');
-      const val = el.classList.contains('currency-input') ? fmtCur(el.value) : el.value;
+      let val = el.value;
+      if (el.classList.contains('currency-input')) val = fmtCur(val);
+      else if (el.type === 'date' && val) val = fmtDate(val);
       addField(label, val);
     });
 
