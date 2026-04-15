@@ -636,14 +636,16 @@ function generatePDF() {
 
   /* ── Blue section header bar ── */
   function addSection(title) {
-    checkPage(14);
-    y += 2;
+    checkPage(16);
+    y += 4;
     doc.setFillColor(44, 95, 138);
     doc.rect(margin, y, cw, 7, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text(title, margin + 3, y + 5);
+    // Decode HTML entities in title
+    const cleanTitle = title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    doc.text(cleanTitle, margin + 3, y + 5);
     doc.setTextColor(0, 0, 0);
     y += 10;
   }
@@ -697,15 +699,17 @@ function generatePDF() {
     doc.setTextColor(26, 26, 26);
     doc.setFontSize(10);
     doc.text(v1 || (opts.required ? '________' : ''), margin + 42, y);
-    // Right field
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(85, 85, 85);
-    doc.text(label2, margin + halfW, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(26, 26, 26);
-    doc.setFontSize(10);
-    doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + 42, y);
+    // Right field — only show if it has a value (or required)
+    if (v2 || opts.required) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(85, 85, 85);
+      doc.text(label2, margin + halfW, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(26, 26, 26);
+      doc.setFontSize(10);
+      doc.text(v2 || (opts.required ? '________' : ''), margin + halfW + 42, y);
+    }
     y += 6;
   }
 
@@ -803,6 +807,30 @@ function generatePDF() {
     return map[val] || val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  /* ── Date formatting: ISO → MM/DD/YYYY ── */
+  function fmtDate(val) {
+    if (!val) return '';
+    const parts = String(val).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!parts) return val;
+    return parseInt(parts[2]) + '/' + parseInt(parts[3]) + '/' + parts[1];
+  }
+
+  /* ── SSN/EIN formatting ── */
+  function fmtSSN(val) {
+    if (!val) return '';
+    const digits = String(val).replace(/\D/g, '');
+    if (digits.length === 9) return digits.substring(0,3) + '-' + digits.substring(3,5) + '-' + digits.substring(5);
+    if (digits.length === 4) return 'XXX-XX-' + digits;
+    return val;
+  }
+
+  function fmtEIN(val) {
+    if (!val) return '';
+    const digits = String(val).replace(/\D/g, '');
+    if (digits.length === 9) return digits.substring(0,2) + '-' + digits.substring(2);
+    return val;
+  }
+
   /* ── Value getters ── */
   function getVal(name) {
     const el = form.querySelector('[name="' + name + '"]');
@@ -820,11 +848,12 @@ function generatePDF() {
 
   /* ── Signature block ── */
   function addSignature(nameField, dateField, titleField) {
-    checkPage(20);
+    checkPage(30);
     addSection('Certification & Signature');
     addField('Signature', getVal(nameField || 'sig_name'), { required: true });
     if (titleField) addField('Title', getVal(titleField));
-    addField('Date', getVal(dateField || 'sig_date') || new Date().toLocaleDateString(), { required: true });
+    const rawDate = getVal(dateField || 'sig_date');
+    addField('Date', fmtDate(rawDate) || new Date().toLocaleDateString(), { required: true });
   }
 
   // Legacy aliases for backward compatibility
