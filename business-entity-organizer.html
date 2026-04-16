@@ -2158,10 +2158,10 @@ function generatePDF() {
     addSection('Estimated & PTE Tax Payments');
     if (hasEst) {
       addSubsection('Federal Estimated Payments');
-      addFieldRow2('Q1', getCur('est_fed_q1') + (getVal('est_fed_q1_date') ? ' (' + getVal('est_fed_q1_date') + ')' : ''),
-                   'Q2', getCur('est_fed_q2') + (getVal('est_fed_q2_date') ? ' (' + getVal('est_fed_q2_date') + ')' : ''));
-      addFieldRow2('Q3', getCur('est_fed_q3') + (getVal('est_fed_q3_date') ? ' (' + getVal('est_fed_q3_date') + ')' : ''),
-                   'Q4', getCur('est_fed_q4') + (getVal('est_fed_q4_date') ? ' (' + getVal('est_fed_q4_date') + ')' : ''));
+      addFieldRow2('Q1', getCur('est_fed_q1') + (getVal('est_fed_q1_date') ? ' (' + fmtDate(getVal('est_fed_q1_date')) + ')' : ''),
+                   'Q2', getCur('est_fed_q2') + (getVal('est_fed_q2_date') ? ' (' + fmtDate(getVal('est_fed_q2_date')) + ')' : ''));
+      addFieldRow2('Q3', getCur('est_fed_q3') + (getVal('est_fed_q3_date') ? ' (' + fmtDate(getVal('est_fed_q3_date')) + ')' : ''),
+                   'Q4', getCur('est_fed_q4') + (getVal('est_fed_q4_date') ? ' (' + fmtDate(getVal('est_fed_q4_date')) + ')' : ''));
     }
     if (stateEstRows.length) {
       const seRows = [];

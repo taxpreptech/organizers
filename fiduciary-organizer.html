@@ -1145,7 +1145,7 @@ function generatePDF() {
       addField('Date of Death', fmtDate(getVal('decedent_dod')));
     }
     if (getVal('decedent_ssn')) {
-      addField('Social Security Number', getVal('decedent_ssn'));
+      addField('Social Security Number', fmtSSN(getVal('decedent_ssn')));
     }
   } else {
     addSubsection('Trust Information');

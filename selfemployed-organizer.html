@@ -970,7 +970,7 @@ function generatePDF() {
       const desc = row.querySelector('input[type="text"]')?.value || '';
       const date = row.querySelector('input[type="date"]')?.value || '';
       const amt = row.querySelector('.currency-input')?.value || '';
-      if (desc || amt) equipData.push([desc, date, fmtCur(amt)]);
+      if (desc || amt) equipData.push([desc, fmtDate(date), fmtCur(amt)]);
     });
     if (equipData.length > 0) {
       addSection('Equipment Purchases');

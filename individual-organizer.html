@@ -1842,14 +1842,15 @@ function generatePDF() {
   /* ── Taxpayer Information ── */
   addSection('Taxpayer Information');
   const tpName = [getVal('tp_first_name'), getVal('tp_mi'), getVal('tp_last_name')].filter(Boolean).join(' ');
-  addFieldRow2('Name', tpName, 'Tax ID', getVal('tp_ssn'), { required: true });
+  addFieldRow2('Name', tpName, 'Tax ID', fmtSSN(getVal('tp_ssn')), { required: true });
   addFieldRow2('Email', getVal('tp_email'), 'Date of Birth', fmtDate(getVal('tp_dob')), { required: true });
   addFieldRow2('Occupation', getVal('tp_occupation'), 'New Client?', fmtLabel(getRadio('tp_new_client')));
   const addr = getVal('tp_address');
   const addrLine = [getVal('tp_city'), getVal('tp_state'), getVal('tp_zip')].filter(Boolean).join(', ');
   addField('Address', addr + (addrLine ? ', ' + addrLine : ''), { required: true });
   addFieldRow2('Primary Phone', getVal('tp_phone1'), 'Secondary Phone', getVal('tp_phone2'));
-  addFieldRow2('Driver License #', getVal('tp_dl_no'), 'DL Exp. Date', fmtDate(getVal('tp_dl_exp')));
+  addFieldRow2('Driver License #', getVal('tp_dl_no'), 'DL State', getVal('tp_dl_state'));
+  addFieldRow2('DL Issue Date', fmtDate(getVal('tp_dl_issue')), 'DL Exp. Date', fmtDate(getVal('tp_dl_exp')));
 
   /* ── Marital Status & Family ── */
   addSection('Marital Status & Family');
@@ -1860,10 +1861,11 @@ function generatePDF() {
   if (spouseSec && spouseSec.style.display !== 'none') {
     addSection('Spouse Information');
     const spName = [getVal('sp_first_name'), getVal('sp_mi'), getVal('sp_last_name')].filter(Boolean).join(' ');
-    addFieldRow2('Name', spName, 'SSN', getVal('sp_ssn'), { required: true });
+    addFieldRow2('Name', spName, 'SSN', fmtSSN(getVal('sp_ssn')), { required: true });
     addFieldRow2('Email', getVal('sp_email'), 'Date of Birth', fmtDate(getVal('sp_dob')));
-    addFieldRow2('Occupation', getVal('sp_occupation'), 'Phone', getVal('sp_phone'));
-    addFieldRow2('Driver License #', getVal('sp_dl_no'), 'DL Exp. Date', fmtDate(getVal('sp_dl_exp')));
+    addFieldRow2('Occupation', getVal('sp_occupation'), 'Phone', getVal('sp_phone1'));
+    addFieldRow2('Driver License #', getVal('sp_dl_no'), 'DL State', getVal('sp_dl_state'));
+    addFieldRow2('DL Issue Date', fmtDate(getVal('sp_dl_issue')), 'DL Exp. Date', fmtDate(getVal('sp_dl_exp')));
   }
 
   /* ── Dependent Children ── */
@@ -1902,7 +1904,7 @@ function generatePDF() {
     const dob = cells[3]?.querySelector('input')?.value || '';
     const months = cells[4]?.querySelector('input')?.value || '';
     const rel = cells[5]?.querySelector('input')?.value || '';
-    if (name) otherDepRows.push([name, ssn, dob, months, rel]);
+    if (name) otherDepRows.push([name, fmtSSN(ssn), fmtDate(dob), months, rel]);
   });
   if (otherDepRows.length) {
     addSection('Other Dependents');
