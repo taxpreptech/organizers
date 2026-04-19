@@ -1771,20 +1771,34 @@ function generatePDF() {
     y += 6;
   }
 
-  /* ── Question + short answer (right-aligned answer column) ── */
+  /* ── Question + short answer (dynamic wrap, answer follows last line) ── */
   function addQA(question, answer) {
     if (!answer) return;
-    checkPage(6);
+    var maxQWidth = cw * 0.55;
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
+    var lines = doc.splitTextToSize(question, maxQWidth);
+    var lineH = 4.5;
+    var totalH = lines.length * lineH + 2;
+    checkPage(totalH);
     doc.setTextColor(85, 85, 85);
-    doc.text(question, margin, y);
+    for (var i = 0; i < lines.length; i++) {
+      doc.text(lines[i], margin, y + i * lineH);
+    }
+    var lastLineW = doc.getTextWidth(lines[lines.length - 1]);
+    var ansX = margin + lastLineW + 3;
+    var ansY = y + (lines.length - 1) * lineH;
+    // If answer would overflow the right margin, bump it to the next line indented
+    doc.setFontSize(10);
+    if (ansX + doc.getTextWidth(String(answer)) > margin + cw) {
+      ansY += lineH;
+      ansX = margin + 10;
+      totalH += lineH;
+    }
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(26, 26, 26);
-    doc.setFontSize(10);
-    // Answer at fixed column (70% of content width) for consistent alignment
-    doc.text(String(answer), margin + cw * 0.55, y);
-    y += 6;
+    doc.text(String(answer), ansX, ansY);
+    y += totalH;
   }
 
   /* ── Table with headers and rows ── */
