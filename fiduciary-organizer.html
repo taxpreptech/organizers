@@ -1402,24 +1402,13 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('click', resetTimeout);
   document.addEventListener('input', resetTimeout);
 
-  // Currency formatting (live as user types)
-  document.querySelectorAll('.currency-input').forEach(input => {
-    input.addEventListener('input', function() { formatCurrency(this); });
-  });
-
-  // SSN masking
-  document.querySelectorAll('[data-mask="ssn"]').forEach(input => {
-    input.addEventListener('input', function() { maskSSN(this); });
-  });
-
-  // EIN masking
-  document.querySelectorAll('[data-mask="ein"]').forEach(input => {
-    input.addEventListener('input', function() { maskEIN(this); });
-  });
-
-  // Phone masking
-  document.querySelectorAll('[data-mask="phone"]').forEach(input => {
-    input.addEventListener('input', function() { maskPhone(this); });
+  // Delegated input formatting — works for static AND dynamically added rows
+  document.addEventListener('input', function(e) {
+    const el = e.target;
+    if (el.classList.contains('currency-input')) formatCurrency(el);
+    if (el.dataset.mask === 'ssn') maskSSN(el);
+    if (el.dataset.mask === 'ein') maskEIN(el);
+    if (el.dataset.mask === 'phone') maskPhone(el);
   });
 
   // Progress tracking
