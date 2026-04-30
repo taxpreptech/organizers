@@ -1510,7 +1510,7 @@ function addOwnerRow() {
 
   const fields = [];
   fields.push(`<input type="text" placeholder="Name">`);
-  fields.push(`<input type="text" placeholder="SSN or EIN">`);
+  fields.push(`<input type="text" placeholder="SSN or EIN" data-mask="ssn">`);
   fields.push(`<input type="text" placeholder="Address">`);
   fields.push(`<input type="text" placeholder="%">`);
 
@@ -1699,7 +1699,7 @@ function generatePDF() {
   /* ── Light subsection header ── */
   function addSubsection(title) {
     checkPage(10);
-    y += 4;
+    y += 6;
     doc.setFillColor(232, 240, 247);
     doc.rect(margin, y, cw, 6, 'F');
     doc.setFontSize(9);
@@ -1707,7 +1707,7 @@ function generatePDF() {
     doc.setTextColor(44, 95, 138);
     doc.text(title, margin + 3, y + 4.3);
     doc.setTextColor(0, 0, 0);
-    y += 8;
+    y += 9;
   }
 
   /* ── Measure label width helper ── */
@@ -2005,19 +2005,28 @@ function generatePDF() {
   }
 
   /* ── Owner Transactions ── */
+  const transHeaders = [];
+  document.querySelectorAll('#owner-trans-header th').forEach(th => {
+    if (th.offsetWidth > 0 && th.textContent.trim()) {
+      transHeaders.push(th.textContent.trim().replace(/\s*\(\$\)\s*$/, ''));
+    }
+  });
   const transRows = [];
   document.querySelectorAll('#owner-trans-table tbody tr').forEach(row => {
     const inputs = row.querySelectorAll('input');
     if (!inputs.length) return;
     const name = inputs[0]?.value || '';
-    const vals = Array.from(inputs).slice(1).map(i => fmtCur(i.value)).filter(Boolean);
-    if (name) transRows.push([name, ...vals]);
+    if (!name) return;
+    const cells = [name];
+    for (let ti = 1; ti < inputs.length; ti++) {
+      cells.push(fmtCur(inputs[ti].value));
+    }
+    transRows.push(cells);
   });
-  if (transRows.length) {
+  if (transRows.length && transHeaders.length) {
     addSection('Owner/Partner/Member Transactions');
-    transRows.forEach(r => {
-      addField(r[0], r.slice(1).join(' | '));
-    });
+    const colW = transHeaders.map(() => cw / transHeaders.length);
+    addTable(transHeaders, transRows, colW);
   }
 
   /* ── Balance Sheet ── */

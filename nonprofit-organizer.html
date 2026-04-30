@@ -1007,7 +1007,7 @@ function generatePDF() {
   /* ── Light subsection header ── */
   function addSubsection(title) {
     checkPage(10);
-    y += 4;
+    y += 6;
     doc.setFillColor(232, 240, 247);
     doc.rect(margin, y, cw, 6, 'F');
     doc.setFontSize(9);
@@ -1015,7 +1015,7 @@ function generatePDF() {
     doc.setTextColor(44, 95, 138);
     doc.text(title, margin + 3, y + 4.3);
     doc.setTextColor(0, 0, 0);
-    y += 8;
+    y += 9;
   }
 
   /* ── Measure label width helper ── */
